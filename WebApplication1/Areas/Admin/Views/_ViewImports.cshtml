@@ -1,0 +1,10 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using WebApplication1
+@using WebApplication1.Entities
+<select name="CategoryId" class="form-select">
+    <option value="">-- Select Category --</option>
+    @foreach (var opt in (IEnumerable<SelectListItem>)ViewBag.CategoryOptions ?? Enumerable.Empty<SelectListItem>())
+    {
+        <option value="@opt.Value">@opt.Text</option>
+    }
+</select>

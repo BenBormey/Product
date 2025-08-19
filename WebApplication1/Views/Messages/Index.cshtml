@@ -1,0 +1,44 @@
+﻿@model List<WebApplication1.Entities.Message>
+@{
+    var folder = (ViewBag.Folder as string ?? "inbox").ToLower();
+    ViewData["Title"] = "Message";
+}
+<div class="card bg-dark text-gray-100 shadow-md">
+    <div class="card-body">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex gap-2">
+                <a asp-action="Index" asp-route-folder="inbox" class="btn @(folder == "inbox" ? "btn-primary" : "btn-outline")">Inbox</a>
+                <a asp-action="Index" asp-route-folder="sent" class="btn @(folder == "sent" ? "btn-primary" : "btn-outline")">Sent</a>
+            </div>
+            <a asp-action="Compose" class="btn btn-success">+ Compose</a>
+        </div>
+
+        <table class="table table-dark table-striped">
+            <thead><tr><th>From</th><th>To</th><th>Subject</th><th>Time</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    var isMine = m.SenderId == int.Parse(User.FindFirst("uid")?.Value ?? "1");
+                    <tr class="@(m.IsRead ? "" : "fw-bold")">
+                        <td>@m.SenderId</td>
+                        <td>@m.ReceiverId</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@m.Id">@m.Subject</a>
+                            @if (!m.IsRead && m.ReceiverId == int.Parse(User.FindFirst("uid")?.Value ?? "1"))
+                            {
+                                <span class="badge bg-info ms-2">new</span>
+                            }
+                        </td>
+                        <td>@m.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            @if (m.ReceiverId == int.Parse(User.FindFirst("uid")?.Value ?? "1"))
+                            {
+                                <form asp-action="Archive" asp-route-id="@m.Id" method="post"><button class="btn btn-sm btn-outline-light">Archive</button></form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

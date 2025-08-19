@@ -1,0 +1,13 @@
+﻿@model WebApplication1.Entities.Product
+@{
+    ViewData["Title"] = "Delete";
+}
+<div class="panel">
+    <div class="panel-header"><div class="panel-title">Delete Menu</div></div>
+    <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

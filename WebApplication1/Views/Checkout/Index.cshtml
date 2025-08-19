@@ -1,0 +1,68 @@
+﻿@model CheckoutVM
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="card bg-dark text-light p-4">
+    <h3 class="mb-3">Order Summary</h3>
+    <table class="table table-dark table-striped align-middle">
+        <thead><tr><th>Product</th><th class="text-end">Price</th><th class="text-end">Qty</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="@(l.Image ?? "/images/placeholder.jpg")" style="width:36px;height:36px;object-fit:cover;border-radius:6px" />
+                            <span>@l.Name</span>
+                        </div>
+                    </td>
+                    <td class="text-end">$ @l.Price.ToString("N2")</td>
+                    <td class="text-end">@l.Qty</td>
+                    <td class="text-end">$ @l.Subtotal.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">$ @Model.Subtotal.ToString("N2")</td></tr>
+            <tr><td colspan="3" class="text-end">Delivery</td><td class="text-end">$ @Model.DeliveryFee.ToString("N2")</td></tr>
+            <tr><td colspan="3" class="text-end">Discount</td><td class="text-end">- $ @Model.Discount.ToString("N2")</td></tr>
+            <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end">$ @Model.Total.ToString("N2")</td></tr>
+        </tfoot>
+    </table>
+
+    <hr class="border-secondary" />
+
+    <form asp-action="Place" method="post" class="row g-3">
+        <h4>Shipping</h4>
+        <div class="col-md-6">
+            <label class="form-label">Recipient name</label>
+            <input name="Recipient_Name" value="@Model.Address?.RecipientName" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Phone (optional)</label>
+            <input name="Phone" class="form-control" />
+        </div>
+        <div class="col-12">
+            <label class="form-label">Address</label>
+            <input name="Address" value="@Model.Address?.Address" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">City</label>
+            <input name="City" value="@Model.Address?.City" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Zip code</label>
+            <input name="Zip_Code" value="@Model.Address?.ZipCode" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Country</label>
+            <input name="Country" value="@Model.Address?.Country" class="form-control" />
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <a class="btn btn-outline-secondary" href="/Cart">Back to Cart</a>
+            <button class="btn btn-success"><i class="bi bi-credit-card"></i> Checkout</button>
+        </div>
+    </form>
+</div>

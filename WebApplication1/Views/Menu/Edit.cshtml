@@ -1,0 +1,123 @@
+﻿@model WebApplication1.Entities.Product
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Edit Product";
+    var cats = ViewBag.Categories as List<WebApplication1.Entities.Category>;
+}
+
+<div class="panel">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="m-0">Edit Product</h2>
+        <span class="badge bg-secondary">#@Model.Id</span>
+    </div>
+
+    @* show all validation on top *@
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Image" />  @* keep old image if no upload *@
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card shadow-none border-0 bg-transparent">
+                    <div class="card-body p-0">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Name" class="form-label fw-semibold">Name</label>
+                                <input asp-for="Name" class="form-control form-control-lg" placeholder="e.g., Hot Coffee" />
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Price" class="form-label fw-semibold">Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Price" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Category</label>
+                                <select asp-for="CategoryId"
+                                        class="form-select"
+                                        asp-items="@(new SelectList(cats, nameof(WebApplication1.Entities.Category.Id), nameof(WebApplication1.Entities.Category.CategoryName)))">
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Short description..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <label class="form-label fw-semibold">Image</label>
+
+                <!-- Dropzone -->
+                <div id="dropzone" class="dz border border-secondary rounded-3 p-3 mb-2 text-center">
+                    <input id="fileInput" name="ImageFile" type="file" accept="image/*" class="d-none" />
+                    <i class="bi bi-cloud-arrow-up fs-3 d-block mb-2"></i>
+                    <div class="small text-secondary">Drag & drop or <a href="#" id="browse">browse</a> to upload</div>
+                    <div class="text-secondary small">If you don’t upload, current image will be kept.</div>
+                </div>
+
+                <!-- Preview -->
+                <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary-subtle bg-black">
+                    <img id="imgPreview"
+                         src="@(string.IsNullOrWhiteSpace(Model.Image) ? "/images/placeholder-food.jpg" : Model.Image)"
+                         alt="preview" class="w-100 h-100 object-fit-cover" />
+                </div>
+            </div>
+        </div>
+
+        <!-- sticky action bar -->
+        <div class="sticky-actions">
+            <div class="container-fluid d-flex gap-2 justify-content-end">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                <button class="btn btn-primary px-4">
+                    <i class="bi bi-save"></i> Save changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const dz = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const browse = document.getElementById('browse');
+        const preview = document.getElementById('imgPreview');
+
+        browse.addEventListener('click', (e) => { e.preventDefault(); fileInput.click(); });
+        dz.addEventListener('click', () => fileInput.click());
+
+        ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+          e.preventDefault(); e.stopPropagation(); dz.classList.add('dz--hover');
+        }));
+        ;['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+          e.preventDefault(); e.stopPropagation(); dz.classList.remove('dz--hover');
+        }));
+        dz.addEventListener('drop', (e) => {
+          const file = e.dataTransfer.files?.[0];
+          if (file) { fileInput.files = e.dataTransfer.files; read(file); }
+        });
+        fileInput.addEventListener('change', () => {
+          const file = fileInput.files?.[0];
+          if (file) read(file);
+        });
+
+        function read(file){
+          const url = URL.createObjectURL(file);
+          preview.src = url;
+        }
+    </script>
+}

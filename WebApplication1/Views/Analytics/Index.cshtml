@@ -1,0 +1,112 @@
+﻿@model AnalyticsVM
+@{
+    ViewData["Title"] = "Analytics Dashboard";
+}
+
+<h2 class="mb-3">Analytics Dashboard</h2>
+
+<!-- Date filter -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input class="form-control" type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-auto">
+        <input class="form-control" type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Apply</button>
+    </div>
+</form>
+
+<!-- KPIs -->
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <div class="fw-semibold">Total Orders</div>
+                <div class="display-6">@Model.Kpis.OrdersCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <div class="fw-semibold">Revenue</div>
+                <div class="display-6">$ @Model.Kpis.Revenue.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <div class="fw-semibold">Avg Order Value</div>
+                <div class="display-6">$ @Model.Kpis.AvgOrderValue.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Sales -->
+<div class="card bg-dark text-white mb-3 shadow">
+    <div class="card-header">Daily Sales</div>
+    <div class="card-body">
+        <canvas id="dailyChart" height="90"></canvas>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Top Products -->
+    <div class="col-md-6">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-header">Top Products</div>
+            <div class="card-body">
+                <canvas id="topProductsChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Category -->
+    <div class="col-md-6">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-header">Revenue by Category</div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // --- Daily Sales ---
+        const dailyLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily.Select(d => d.Date.ToString("yyyy-MM-dd"))));
+        const dailyValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily.Select(d => d.Revenue)));
+
+        new Chart(document.getElementById('dailyChart'), {
+            type: 'line',
+            data: { labels: dailyLabels, datasets: [{ label: 'Revenue', data: dailyValues, borderWidth: 2, borderColor: '#4ade80', tension: 0.2 }] },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+
+        // --- Top Products ---
+        const topLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopProducts.Select(p => p.Name)));
+        const topValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopProducts.Select(p => p.TotalRevenue)));
+
+        new Chart(document.getElementById('topProductsChart'), {
+            type: 'bar',
+            data: { labels: topLabels, datasets: [{ label: 'Revenue', data: topValues, backgroundColor: '#60a5fa' }] },
+            options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
+        });
+
+        // --- Category Revenue ---
+        const catLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ByCategory.Select(c => c.CategoryName)));
+        const catValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ByCategory.Select(c => c.Revenue)));
+
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: ['#22c55e','#3b82f6','#f97316','#e11d48','#a855f7'] }] },
+            options: { responsive: true }
+        });
+    </script>
+}
