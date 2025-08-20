@@ -29,7 +29,7 @@ namespace WebApplication1.Controllers
         {
             var id = await _service.PlaceOrderAsync(CurrentUserId, form, deliveryFee, discount);
             TempData["ok"] = "Order placed!";
-            return RedirectToAction("Success", new { id });
+            return RedirectToAction("Choose", "Payments", new { orderId = id });
         }
 
         [HttpGet]
@@ -39,6 +39,7 @@ namespace WebApplication1.Controllers
             ViewBag.OrderId = id;
             return View();
         }
+
     }
 
 }

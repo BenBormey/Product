@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -8,6 +9,7 @@ using WebApplication1.Entities;
 
 namespace WebApplication1.Controllers
 {
+   
     public class AccountController : Controller
     {
         private readonly AppDbContext _db;
@@ -21,6 +23,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
         {
             // find user by email

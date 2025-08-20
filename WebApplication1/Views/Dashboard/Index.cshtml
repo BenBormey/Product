@@ -1,159 +1,167 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+﻿@using System.Text.Json
+@using WebApplication1
+@model WebApplication1.Models.Dashboard.AnalyticsVM
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> T
+
+@{
+    ViewData["Title"] = T["Dashboard"];
+    var monthTitle = $"{Model.From:MMMM} {Model.From:yyyy}";
+    // pick some soft colors for the doughnut (auto-trim to slice count)
+    var colors = new[] { "#ff7b7b", "#a88cff", "#35d39a", "#6fa8ff", "#f59e0b", "#10b981", "#ef4444" };
+    var usedColors = colors.Take(Model.OrderStatus.Slices.Count).ToArray();
 }
-<div class="cards">
-    <div class="card-kpi kpi-1">
-        <div class="kpi-top">
-            <div class="kpi-icon"><i class="bi bi-stopwatch"></i></div>
-            <div class="kpi-amount">$ 11,256</div>
-        </div>
-        <div class="kpi-label">Today's Revenue</div>
+
+<h2 class="mb-3">@T["Dashboard"]</h2>
+
+<!-- Date filter -->
+<form method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+        <input class="form-control" type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
     </div>
-    <div class="card-kpi kpi-2">
-        <div class="kpi-top">
-            <div class="kpi-icon"><i class="bi bi-bag-check"></i></div>
-            <div class="kpi-amount">245</div>
-        </div>
-        <div class="kpi-label">Today's Order</div>
+    <div class="col-auto">
+        <input class="form-control" type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
     </div>
-    <div class="card-kpi kpi-3">
-        <div class="kpi-top">
-            <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-            <div class="kpi-amount">$ 6,556</div>
-        </div>
-        <div class="kpi-label">Avg. Expense</div>
+    <div class="col-auto">
+        <button class="btn btn-primary">@T["Apply"]</button>
     </div>
-    <div class="card-kpi kpi-4">
-        <div class="kpi-top">
-            <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
-            <div class="kpi-amount">$ 4,227</div>
+</form>
+
+<!-- KPI cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow-sm">
+            <div class="card-body">
+                <div class="fw-semibold">@T["TodaysRevenue"]</div>
+                <div class="display-6">$ @Model.Cards.TodaysRevenue.ToString("N2")</div>
+            </div>
         </div>
-        <div class="kpi-label">Avg. Revenue</div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow-sm">
+            <div class="card-body">
+                <div class="fw-semibold">@T["TodaysOrder"]</div>
+                <div class="display-6">@Model.Cards.TodaysOrder</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow-sm">
+            <div class="card-body">
+                <div class="fw-semibold">@T["AvgExpense"]</div>
+                <div class="display-6">$ 2000</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow-sm">
+            <div class="card-body">
+                <div class="fw-semibold">@T["AvgRevenue"]</div>
+                <div class="display-6">$ @Model.Cards.AvgRevenue.ToString("N2")</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="grid-2">
-    <!-- Sales details (doughnut + legend) -->
-    <div class="panel">
-        <div class="panel-header">
-            <div>
-                <div class="panel-title">Sales Details</div>
-                <div class="panel-sub">February, 2025</div>
+<!-- Charts row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card bg-dark text-white shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">@T["SalesDetails"]</span>
+                <small class="text-secondary">@monthTitle</small>
             </div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Monthly</button>
-                <ul class="dropdown-menu dropdown-menu-dark">
-                    <li><a class="dropdown-item" href="#">Daily</a></li>
-                    <li><a class="dropdown-item" href="#">Weekly</a></li>
-                    <li><a class="dropdown-item" href="#">Monthly</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="row g-0">
-            <div class="col-7 p-2">
-                <canvas id="salesDoughnut" height="140"></canvas>
-            </div>
-            <div class="col-5 p-2">
-                <div class="legend">
-                    <div class="legend-item"><span class="legend-dot" style="background:#ff7b7b"></span> Total Order 35%</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#a88cff"></span> Running order 22%</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#35d39a"></span> Customer Growth 26%</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#6fa8ff"></span> Total Revenue 17%</div>
+            <div class="card-body">
+                <canvas id="statusDoughnut" height="180"></canvas>
+                <div class="mt-3">
+                    @for (int i = 0; i < Model.OrderStatus.Slices.Count; i++)
+                    {
+                        var s = Model.OrderStatus.Slices[i];
+                        var color = usedColors[i];
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="me-2" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:@color"></span>
+                            <span class="me-2">@s.Label</span>
+                            <span class="text-secondary">— @s.Value</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Order chart (bar) -->
-    <div class="panel">
-        <div class="panel-header">
-            <div class="panel-title">Order Chart</div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Weekly</button>
-                <ul class="dropdown-menu dropdown-menu-dark">
-                    <li><a class="dropdown-item" href="#">Daily</a></li>
-                    <li><a class="dropdown-item" href="#">Weekly</a></li>
-                    <li><a class="dropdown-item" href="#">Monthly</a></li>
-                </ul>
+    <div class="col-lg-6">
+        <div class="card bg-dark text-white shadow-sm h-100">
+            <div class="card-header fw-semibold">@T["OrderChart"]</div>
+            <div class="card-body">
+                <canvas id="ordersBar" height="180"></canvas>
             </div>
         </div>
-        <canvas id="ordersBar" height="130"></canvas>
     </div>
 </div>
 
 <!-- Trending -->
-<div class="panel">
-    <div class="panel-header">
-        <div class="panel-title">Trending Orders</div>
-        <div class="panel-sub">Top picks today</div>
+<div class="card bg-dark text-white shadow-sm">
+    <div class="card-header">
+        <div class="fw-semibold">@T["TrendingOrders"]</div>
+        <div class="text-secondary small">@T["TopPicksToday"]</div>
     </div>
-    <div class="trending">
-        <div class="trend-card">
-            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop" />
-            <div class="meta">
-                <span>Chicken Pot Pie</span>
-                <span>Price : $299</span>
+    <div class="card-body">
+        @if (Model.Trending?.Any() == true)
+        {
+            <div class="row g-3">
+                @foreach (var p in Model.Trending)
+                {
+                    <div class="col-md-4">
+                        <div class="border rounded overflow-hidden h-100 bg-black">
+                            <img src="@(string.IsNullOrWhiteSpace(p.ImageUrl) ? $"https://picsum.photos/seed/{p.ProductId}/640/360" : p.ImageUrl)"
+                                 class="w-100" style="object-fit:cover; height:180px" />
+                            <div class="p-3 d-flex justify-content-between align-items-center">
+                                <div class="fw-semibold">@p.Name</div>
+                                <div class="text-success">$ @p.Price.ToString("N2")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
-        </div>
-        <div class="trend-card">
-            <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=1200&auto=format&fit=crop" />
-            <div class="meta">
-                <span>Massed Salad</span>
-                <span>Price : $245</span>
-            </div>
-        </div>
-        <div class="trend-card">
-            <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=1200&auto=format&fit=crop" />
-            <div class="meta">
-                <span>Rice toppings</span>
-                <span>Price : $225</span>
-            </div>
-        </div>
+        }
+        else
+        {
+            <div class="text-secondary">@T["NoData"]</div>
+        }
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Doughnut
-        const doughnutCtx = document.getElementById('salesDoughnut');
-        new Chart(doughnutCtx, {
+        // ---- Status doughnut ----
+        const statusLabels = @Html.Raw(JsonSerializer.Serialize(Model.OrderStatus.Slices.Select(s => s.Label)));
+        const statusData   = @Html.Raw(JsonSerializer.Serialize(Model.OrderStatus.Slices.Select(s => s.Value)));
+        const statusColors = @Html.Raw(JsonSerializer.Serialize(usedColors));
+
+        new Chart(document.getElementById('statusDoughnut'), {
             type: 'doughnut',
             data: {
-                labels: ['Total Order', 'Running order', 'Customer Growth', 'Total Revenue'],
-                datasets: [{
-                    data: [35, 22, 26, 17],
-                    backgroundColor: ['#ff7b7b','#a88cff','#35d39a','#6fa8ff'],
-                    borderWidth: 0,
-                    cutout: '70%'
-                }]
+                labels: statusLabels,
+                datasets: [{ data: statusData, backgroundColor: statusColors, borderWidth: 0, cutout: '70%' }]
             },
             options: {
-                plugins: {
-                    legend: { display:false },
-                    tooltip: { enabled:true }
-                }
+                plugins: { legend: { display: false }, tooltip: { enabled: true } }
             }
         });
 
-        // Bars
-        const barCtx = document.getElementById('ordersBar');
-        new Chart(barCtx, {
+        // ---- Orders per day (bar) ----
+        const dayLabels = @Html.Raw(JsonSerializer.Serialize(Model.OrdersPerDay.Labels));
+        const dayValues = @Html.Raw(JsonSerializer.Serialize(Model.OrdersPerDay.Data));
+
+        new Chart(document.getElementById('ordersBar'), {
             type: 'bar',
-            data: {
-                labels: ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'],
-                datasets: [{
-                    label: 'Orders',
-                    data: [160, 190, 220, 265, 210, 170, 150],
-                    borderRadius: 8
-                }]
-            },
+            data: { labels: dayLabels, datasets: [{ label: '@T["Orders"]', data: dayValues, borderRadius: 8 }] },
             options: {
                 scales: {
-                    x: { grid: { display:false }, ticks:{ color:'#9aa0a6' } },
-                    y: { grid: { color:'#22262f' }, ticks:{ color:'#9aa0a6' }, beginAtZero:true, suggestedMax:300 }
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: '#22262f' } }
                 },
-                plugins: { legend:{ display:false } }
+                plugins: { legend: { display: false } }
             }
         });
     </script>

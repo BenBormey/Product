@@ -1,0 +1,33 @@
+﻿@model WebApplication1.Controllers.PaymentChoiceVm
+@{
+    ViewData["Title"] = "Choose Payment Method";
+}
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2>Choose Payment Method</h2>
+        <div class="text-secondary">Order #: <strong>@Model.OrderId</strong></div>
+        <div class="fw-semibold mt-1">Total: @Model.Total.ToString("C")</div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-5">
+            <div class="card bg-dark text-white shadow p-4 h-100">
+                <h4>Pay with Bank</h4>
+                <p class="text-secondary">Scan QR on next step and press “I have paid”.</p>
+                <a asp-action="Bank" asp-route-orderId="@Model.OrderId" class="btn btn-success w-100">
+                    Continue to Bank
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card bg-dark text-white shadow p-4 h-100">
+                <h4>Cash on Delivery</h4>
+                <p class="text-secondary">Pay in cash when the order arrives.</p>
+                <a asp-action="Cash" asp-route-orderId="@Model.OrderId" class="btn btn-primary w-100">
+                    Continue with COD
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,20 +1,30 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Globalization;
 using WebApplication1.Data;
 using WebApplication1.Entities;
+using WebApplication1.Localization;
+using WebApplication1.Repository;
 using WebApplication1.service; // where AppDbContext lives
-
 var builder = WebApplication.CreateBuilder(args);
 
 // 1) Add services to the container (ALL Add... go here)
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IPaymentService, DemoPaymentService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddSession();
-builder.Services.AddScoped<CartService>(); builder.Services.AddScoped<AnalyticsEfService>();
+//builder.Services.AddScoped<CartService>(); builder.Services.AddScoped<AnalyticsEfService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<CheckoutService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddSingleton<IQrService, QrService>();
+
+builder.Services.AddAppLocalization(builder.Configuration);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -24,8 +34,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.SlidingExpiration = true;
     });
 // 2) Build the app
-var app = builder.Build();
+builder.Services.Configure<RequestLocalizationOptions>(o =>
+{
+    var cultures = new[] { new CultureInfo("en-US"), new CultureInfo("km-KH") };
+    o.DefaultRequestCulture = new RequestCulture("en-US");
+    o.SupportedCultures = cultures;
+    o.SupportedUICultures = cultures;
+    o.RequestCultureProviders.Insert(0, new QueryStringRequestCultureProvider());
+    o.RequestCultureProviders.Insert(1, new CookieRequestCultureProvider());
+});
 
+var app = builder.Build();
+app.UseAppLocalization();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -60,10 +80,12 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+var locOpts = app.Services.GetRequiredService<
+    Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>().Value;
 
-
+app.UseRequestLocalization(locOpts);
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Logout}/{id?}");
 
 app.Run();

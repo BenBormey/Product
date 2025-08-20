@@ -1,0 +1,23 @@
+﻿@using WebApplication1.Controllers
+@model PayVm
+@{
+    ViewData["Title"] = "Bank Payment";
+}
+<div class="container mt-5 text-center">
+    <h2>Pay with Bank</h2>
+    <p>Order # <strong>@Model.Order.Id</strong></p>
+    <p>Total: @Model.Order.TotalPrice.ToString("C")</p>
+
+    <div class="card bg-dark text-white shadow p-4 mx-auto" style="max-width:720px">
+        <img src="@Model.QrImageDataUrl" alt="QR Payment" class="mx-auto d-block" style="max-width:260px;" />
+        <form asp-action="ConfirmBankPaid" asp-route-orderId="@Model.Order.Id" method="post" class="mt-3">
+            <button type="submit" class="btn btn-success">I have paid (Bank)</button>
+        </form>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Choose" asp-route-orderId="@Model.Order.Id" class="btn btn-outline-secondary btn-sm">
+            Back
+        </a>
+    </div>
+</div>

@@ -174,7 +174,7 @@ namespace WebApplication1.Data
 
                 entity.Property(e => e.RecipientName)
                       .HasColumnName("recipient_name")
-                      .HasMaxLength(100);
+                      .HasMaxLength(200);
 
                 entity.Property(e => e.Address)
                       .HasColumnName("address")

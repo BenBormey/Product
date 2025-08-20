@@ -1,0 +1,22 @@
+﻿@model WebApplication1.Controllers.CashVm
+@{
+    ViewData["Title"] = "Cash on Delivery";
+}
+<div class="container mt-5 text-center">
+    <h2>Cash on Delivery</h2>
+    <p>Order # <strong>@Model.OrderId</strong></p>
+    <p>Total: @Model.Total.ToString("C")</p>
+
+    <div class="card bg-dark text-white shadow p-4 mx-auto" style="max-width:720px">
+        <p class="mb-1">You will pay in cash when the order arrives.</p>
+        <p class="text-secondary">Please keep your phone available for delivery confirmation.</p>
+
+        <form asp-action="ConfirmCashOnDelivery" asp-route-orderId="@Model.OrderId" method="post" class="mt-2">
+            <button type="submit" class="btn btn-primary">Confirm Cash on Delivery</button>
+        </form>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Choose" asp-route-orderId="@Model.OrderId" class="btn btn-outline-secondary btn-sm">Back</a>
+    </div>
+</div>

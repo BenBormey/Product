@@ -1,5 +1,6 @@
 ﻿@model ProductIndexVM
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> T
 @{
     ViewData["Title"] = "Products";
 }
@@ -45,8 +46,8 @@
     {
         <div class="empty">
             <div class="empty-icon">🍽️</div>
-            <div class="empty-title">No products found</div>
-            <p class="empty-sub">Try different filters or <a asp-action="Create">add a new product</a>.</p>
+            <div class="empty-title">​@T["found"] </div>
+            <p class="empty-sub">Try different filters or <a asp-action="Create">​@T["Add"]</a>.</p>
         </div>
     }
     else
@@ -61,9 +62,9 @@
                         <span class="p-price">$ @p.Price.ToString("N2")</span>
 
                         <div class="p-quick">
-                            <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-light">View</a>
-                            <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-warning">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-danger">Delete</a>
+                            <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-light">​@T["View"]</a>
+                            <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-warning">​@T["Edit"]Edit</a>
+                            <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-danger">​@T["Delete"]</a>
                         </div>
                     </div>
 
@@ -75,7 +76,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type ="hidden" type="number" name="qty" value="1" min="1" class="form-control form-control-sm" style="width:80px" />
                                 <button type="submit" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-cart-plus"></i> Add
+                                    <i class="bi bi-cart-plus"></i> @T["AddCart"]
                                 </button>
                             </form>
 

@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Entities;
-using WebApplication1.Models; // ប្តូរប្រសិនបើ namespace ផ្សេង
+using WebApplication1.Models;
+using WebApplication1.Models.Order; // ប្តូរប្រសិនបើ namespace ផ្សេង
 [Authorize]
 public class CartController : Controller
 {
@@ -142,6 +143,37 @@ public class CartController : Controller
         TempData["Success"] = "Cart cleared.";
         return RedirectToAction(nameof(Index));
     }
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var order = await _db.orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order == null) return NotFound();
 
+        // Load items via OrderDetail table (robust even if Order has no nav collection)
+        var items = await _db.orderDetail
+            .Where(od => od.OrderId == id)
+            .Include(od => od.Product)
+            .Select(od => new OrderItemRow
+            {
+                ProductId = od.ProductId,
+                Name = od.Product != null ? od.Product.Name : $"#{od.ProductId}",
+                ImageUrl = od.Product != null ? od.Product.Image : null,
+                UnitPrice = od.Price,
+                Qty = od.Qty,
+                LineTotal = od.Price * od.Qty
+            })
+            .ToListAsync();
+
+        var vm = new OrderDetailsVm
+        {
+            Id = order.Id,
+            OrderDate = order.OrderDate,
+            Status = order.Status,
+            TotalPrice = order.TotalPrice,
+            Items = items
+        };
+
+        return View(vm); // Views/Orders/Details.cshtml
+    }
 
 }
