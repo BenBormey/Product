@@ -22,8 +22,11 @@ namespace WebApplication1.Models
 
     [Display(Name = "Image")]
     public IFormFile? ImageFile { get; set; }
+        [Display(Name = "QtyInstock")]
 
-    // for the dropdown
-    public IEnumerable<SelectListItem> CategoryOptions { get; set; } = Enumerable.Empty<SelectListItem>();
+    public int? QtyInStock { get; set; }
+
+        // for the dropdown
+        public IEnumerable<SelectListItem> CategoryOptions { get; set; } = Enumerable.Empty<SelectListItem>();
     }
 }

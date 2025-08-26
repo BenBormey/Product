@@ -56,7 +56,7 @@ namespace WebApplication1.Controllers
             if (order == null) return NotFound();
 
             // TODO: create Payment row if you have one
-            order.Status = "Processing"; // or "Paid"
+            order.Status = "Completed"; // or "Paid"
             await _db.SaveChangesAsync();
 
             TempData["ok"] = "Payment confirmed.";
@@ -65,31 +65,36 @@ namespace WebApplication1.Controllers
 
         // STEP 2B: cash page
         [HttpGet]
-        public async Task<IActionResult> Cash(int orderId)
+        public async Task<IActionResult> Cash(int orderId, CancellationToken ct)
         {
-            var order = await _db.orders.FindAsync(orderId);
-            if (order == null) return NotFound();
+            var order = await _db.orders.FindAsync(new object?[] { orderId }, ct);
+            if (order is null) return NotFound();
 
-            var vm = new CashVm
-            {
-                OrderId = order.Id,
-                Total = order.TotalPrice
-            };
-            return View(vm); // Views/Payment/Cash.cshtml
+            var vm = new CashVm { OrderId = orderId, Total = order.TotalPrice };
+            return View(vm);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ConfirmCashOnDelivery(int orderId)
+        public async Task<IActionResult> ConfirmCashOnDelivery(int orderId, double CashAmount, CancellationToken ct)
         {
-            var order = await _db.orders.FindAsync(orderId);
-            if (order == null) return NotFound();
+            var order = await _db.orders.FindAsync(new object?[] { orderId }, ct);
+            if (order is null) return NotFound();
+           
 
-            order.Status = "CashOnDelivery"; // keep PendingPayment if you prefer
-            await _db.SaveChangesAsync();
+            // compare numbers, not strings
+            if ( (decimal)CashAmount < order.TotalPrice)
+            {
+                TempData["error"] = "Cash amount must be at least the total price.";
+                return RedirectToAction(nameof(Cash), new { orderId });
+            }
 
-            TempData["ok"] = "Cash on Delivery selected.";
-            return RedirectToAction("Details", "Cart", new { id = orderId });
+       
+            // ... mark paid, etc.
+           
+            TempData["ok"] = $"Paid successfully. Change: {CashAmount:C}";
+            return RedirectToAction("Details", "Cart", new { id = orderId, CashAmount });
         }
+
     }
     public class PayVm
     {
@@ -105,6 +110,7 @@ namespace WebApplication1.Controllers
     {
         public int OrderId { get; set; }
         public decimal Total { get; set; }
+        public decimal CashAmount { get; set; }
     }
 
 }

@@ -13,6 +13,24 @@
     string flag = isKh ? "🇰🇭" : "🇺🇸";
     string label = isKh ? "ខ្មែរ" : "English";
     var returnUrl = (Context.Request.Path + Context.Request.QueryString).ToString();
+
+    // ============ ACTIVE NAV LOGIC ============
+    var curController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var curAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    Func<string, string?, string> Active = (controller, action) =>
+    {
+        bool ctrlOk = string.Equals(curController, controller, StringComparison.OrdinalIgnoreCase);
+        bool actOk = string.IsNullOrEmpty(action) || string.Equals(curAction, action, StringComparison.OrdinalIgnoreCase);
+        return (ctrlOk && actOk) ? "active" : "";
+    };
+
+    Func<string[], string?, string> ActiveAny = (controllers, action) =>
+    {
+        bool ctrlOk = controllers.Any(c => string.Equals(curController, c, StringComparison.OrdinalIgnoreCase));
+        bool actOk = string.IsNullOrEmpty(action) || string.Equals(curAction, action, StringComparison.OrdinalIgnoreCase);
+        return (ctrlOk && actOk) ? "active" : "";
+    };
 }
 
 <!DOCTYPE html>
@@ -36,6 +54,13 @@
         .lang-select, .dropdown-toggle {
             border-radius: 8px;
         }
+        /* Highlight active menu */
+        .sidebar-nav .nav-link.active {
+            background: rgba(255,255,255,.12);
+            color: #fff;
+            border-radius: 10px;
+            font-weight: 600;
+        }
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
@@ -50,32 +75,28 @@
             </div>
 
             <nav class="nav flex-column sidebar-nav">
-                <a asp-controller="Dashboard" asp-action="Index" class="nav-link active">
+                <a asp-controller="Dashboard" asp-action="Index" class="nav-link @Active("Dashboard","Index")">
                     <i class="bi bi-grid"></i> <span>@T["Dashboard"]</span>
                 </a>
-                <a asp-controller="Menu" asp-action="Index" class="nav-link">
+                <a asp-controller="Menu" asp-action="Index" class="nav-link @ActiveAny(new[]{ "Menu","Product" }, null)">
                     <i class="bi bi-bag"></i> <span>@T["Menu"]</span>
                 </a>
-                <a asp-controller="Cart" asp-action="Index" class="nav-link">
+                <a asp-controller="Cart" asp-action="Index" class="nav-link @Active("Cart","Index")">
                     <i class="bi bi-bag"></i> <span>@T["OrderList"]</span>
                 </a>
-                <a asp-controller="Analytics" asp-action="Index" class="nav-link">
-                    <i class="bi bi-graph-up"></i> <span>@T["Analytics"]</span>
+                <a asp-controller="Cart" asp-action="Pedding" class="nav-link @Active("Cart","Pedding")">
+                    <i class="bi bi-graph-up"></i> <span>@T["Pending"]</span>
                 </a>
-                <a asp-controller="Teams" asp-action="Index" class="nav-link">
+                <a asp-controller="Teams" asp-action="Index" class="nav-link @Active("Teams","Index")">
                     <i class="bi bi-people"></i> <span>@T["Teams"]</span>
                 </a>
-                <a asp-controller="Messages" asp-action="Index" class="nav-link">
+                <a asp-controller="Messages" asp-action="Index" class="nav-link @Active("Messages","Index")">
                     <i class="bi bi-chat-dots"></i> <span>@T["Message"]</span>
                 </a>
-              
                 <div class="mt-auto"></div>
-
-            
             </nav>
-
         </aside>
-       
+
         <!-- Main -->
         <div class="dash-main">
             <!-- Top bar -->
@@ -109,13 +130,10 @@
                             </a>
                         </li>
                     </ul>
-                
                 </div>
 
                 <div class="profile ms-3">
-                   
-                        <img src="~/uploads/products/photo_2025-07-21_16-07-44.jpg" alt="avatar" />
-                 
+                    <img src="~/uploads/products/photo_2025-07-21_16-07-44.jpg" alt="avatar" />
                     <div class="profile-info">
                         <div class="name">@userName</div>
                         <div class="role">@T["Admin"]</div>
@@ -132,7 +150,6 @@
 
             <footer class="dash-footer">
                 <span>&copy; @DateTime.UtcNow.Year - @T["FooterAppName"]</span>
-               
             </footer>
         </div>
     </div>

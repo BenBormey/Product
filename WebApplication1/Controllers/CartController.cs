@@ -5,6 +5,7 @@ using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Entities;
 using WebApplication1.Models;
+using WebApplication1.Models.Invoice;
 using WebApplication1.Models.Order; // ប្តូរប្រសិនបើ namespace ផ្សេង
 [Authorize]
 public class CartController : Controller
@@ -56,7 +57,7 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
- 
+
     public async Task<IActionResult> Add(int id, int qty = 1)
     {
         if (qty <= 0) qty = 1;
@@ -68,7 +69,7 @@ public class CartController : Controller
         var item = cart.CartItems.FirstOrDefault(x => x.ProductId == id);
         if (item is null)
         {
-            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty ,Price = product.Price/*, Price = product.Price*/ };
+            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty, Price = product.Price/*, Price = product.Price*/ };
             _db.cartItems.Add(item);
         }
         else item.Quantity += qty;
@@ -144,7 +145,7 @@ public class CartController : Controller
         return RedirectToAction(nameof(Index));
     }
     [HttpGet]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(int id, decimal CashAmount)
     {
         var order = await _db.orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order == null) return NotFound();
@@ -163,6 +164,9 @@ public class CartController : Controller
                 LineTotal = od.Price * od.Qty
             })
             .ToListAsync();
+        order.cashAmount = (decimal)CashAmount;
+        order.cashreturn = (decimal)(CashAmount - order.TotalPrice);
+        await _db.SaveChangesAsync();
 
         var vm = new OrderDetailsVm
         {
@@ -170,10 +174,102 @@ public class CartController : Controller
             OrderDate = order.OrderDate,
             Status = order.Status,
             TotalPrice = order.TotalPrice,
-            Items = items
+            Items = items,
+            cashreturn = (decimal)order.cashreturn,
+
         };
 
         return View(vm); // Views/Orders/Details.cshtml
     }
+    public async Task<IActionResult> Invoice(int Id, bool receipt = false, CancellationToken ct = default)
+    {
+        var order = await _db.orders.FirstOrDefaultAsync(o => o.Id == Id, ct);
+        var user = await _db.users.FirstOrDefaultAsync();
+        if (order is null) return NotFound();
+
+        // JOIN order_detail → products
+        var items = await _db.orderDetail
+            .Where(d => d.OrderId == Id)
+            .Join(_db.products,
+                  d => d.ProductId,             // <-- change if your FK has another name
+                  p => p.Id,
+                  (d, p) => new PrintItemVM
+                  {
+                      Code = p.CodeOrBarcode, // from products
+                      Name = p.Name,
+                      Qty = d.Qty,      // <-- CHANGE HERE if your column is "Qty"
+                      UnitPrice = d.Price == 0 ? p.Price : d.Price,  // fallback to product price
+                      LineTotal = d.Qty * (d.Price == 0 ? p.Price : d.Price)
+                  })
+            .ToListAsync(ct);
+
+        var subtotal = items.Sum(x => x.LineTotal);
+        var grandTotal = subtotal;              // no VAT/fees/discounts in minimal schema
+
+        var paid =order.cashAmount ?? 0m;                        // set if you store a paid amount
+        var chg = order.cashreturn ?? 0m;             // you can pass ?change= from COD
+        var due = Math.Max(grandTotal - paid, 0m);
+        var phone = user?.Phone;
+
+        order.Status = "Completed";
+        await _db.SaveChangesAsync();
+
+        var vm = new PrintOrderVM
+        {
+            OrderId = order.Id,
+            // order.OrderDate is likely DateTime? from DB "date"
+            OrderDate = (DateTime)(order.OrderDate == default ? DateTime.Now : order.OrderDate),
+            Items = items,
+            Subtotal = subtotal,
+            GrandTotal = grandTotal,
+            Paid = paid,
+            Change = (decimal)chg,
+            Due = due,
+            IsReceipt = receipt,
+            Phone = phone,
+        };
+   
+
+        return View("Invoice", vm);
+    }
+    public async Task<IActionResult> Pedding()
+    {
+        var result = await _db.orders
+    .AsNoTracking()
+    .Where(p => p.Status == "Pending" || p.Status == "Peding")
+    .ToListAsync();
+
+        return View(result);
+        
+    }
+    public async Task<IActionResult> RemoveOrder(int orderId, CancellationToken ct)
+    {
+        var order = await _db.orders.FirstOrDefaultAsync(x => x.Id == orderId, ct);
+        if (order == null) return NotFound();
+
+        // បិទ order ដោយកែស្ថានភាព
+        if (!string.Equals(order.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+        {
+            order.Status = "Cancelled";
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return RedirectToAction("Pedding", "Cart");
+    }
+    public async Task<IActionResult> DetailsOrder(int id, CancellationToken ct)
+    {
+        var order = await _db.orders
+            .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)  // only if you have navigation Product
+            .FirstOrDefaultAsync(o => o.Id == id, ct);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        return View(order);
+    }
+
 
 }

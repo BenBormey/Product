@@ -25,6 +25,7 @@ namespace WebApplication1.Controllers
             // options for the dropdown + "All"
             var options = await _db.categories
                 .OrderBy(c => c.CategoryName)
+                .Where(c => c.CategoryName != null) // Ensure no null values
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CategoryName! })
                 .ToListAsync();
 
@@ -32,6 +33,7 @@ namespace WebApplication1.Controllers
             var query = _db.products
                 .AsNoTracking()
                 .Include(p => p.Category)
+                .Where(p=> p.QtyInStock > 0)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(q))
@@ -92,6 +94,13 @@ namespace WebApplication1.Controllers
 
                 imagePath = $"/uploads/products/{fileName}";
             }
+            var exiting = await _db.products.FirstOrDefaultAsync(p => p.CodeOrBarcode == model.CodeOrBarcode);
+            if (exiting is not null)
+            {
+                ModelState.AddModelError(nameof(model.CodeOrBarcode), "Code or barcode already exists.");
+                model.CategoryOptions = await GetCategoryOptionsAsync();
+                return View(model);
+            }
 
             // map & save
             var entity = new Product
@@ -102,7 +111,8 @@ namespace WebApplication1.Controllers
                 CategoryId = model.CategoryId,
                 CodeOrBarcode = model.CodeOrBarcode,
                 Image = imagePath,
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                QtyInStock = model.QtyInStock,
             };
 
             _db.products.Add(entity);
@@ -153,6 +163,7 @@ namespace WebApplication1.Controllers
             p.Description = model.Description;
             p.Image = model.Image;          // keep old if no upload
             p.CategoryId = model.CategoryId;
+            p.QtyInStock = model.QtyInStock;
 
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

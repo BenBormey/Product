@@ -249,7 +249,7 @@
   <data name="Food" xml:space="preserve">
     <value>ម្ហូប</value>
   </data>
-  <data name="View" xml:space="preserve">
+  <data name="Views" xml:space="preserve">
     <value>ចូលមើល</value>
   </data>
   <data name="Edit" xml:space="preserve">
@@ -263,5 +263,11 @@
   </data>
   <data name="AddCart" xml:space="preserve">
     <value>បន្ថែមទៅក្នុងកាត</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>ប្រភេទ</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>កំពុងរង់ចាំ</value>
   </data>
 </root>

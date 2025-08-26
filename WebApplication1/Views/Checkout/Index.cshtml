@@ -37,28 +37,18 @@
         <h4>Shipping</h4>
         <div class="col-md-6">
             <label class="form-label">Recipient name</label>
-            <input name="Recipient_Name" value="@Model.Address?.RecipientName" class="form-control" />
+            <input name="RecipientName" value="@Model.Address?.RecipientName" class="form-control" />
         </div>
         <div class="col-md-6">
             <label class="form-label">Phone (optional)</label>
-            <input name="Phone" class="form-control" />
+            <input name="Phone"  class="form-control" />
         </div>
         <div class="col-12">
             <label class="form-label">Address</label>
             <input name="Address" value="@Model.Address?.Address" class="form-control" />
         </div>
-        <div class="col-md-4">
-            <label class="form-label">City</label>
-            <input name="City" value="@Model.Address?.City" class="form-control" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Zip code</label>
-            <input name="Zip_Code" value="@Model.Address?.ZipCode" class="form-control" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Country</label>
-            <input name="Country" value="@Model.Address?.Country" class="form-control" />
-        </div>
+    
+    
 
         <div class="d-flex justify-content-end gap-2 mt-3">
             <a class="btn btn-outline-secondary" href="/Cart">Back to Cart</a>

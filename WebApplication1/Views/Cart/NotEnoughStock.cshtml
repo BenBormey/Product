@@ -1,0 +1,54 @@
+﻿@model IEnumerable<WebApplication1.Entities.Product>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Products with Low Stock";
+}
+
+<h2>⚠️ Products with Not Enough Stock</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">
+        All products are in stock ✅
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Stock Available</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            var totalStock = item.Stocks.Sum(s => s.Qty);
+
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Category?.CategoryName</td>
+                <td>@totalStock</td>
+                <td>
+                    @if (totalStock <= 0)
+                    {
+                        <span class="badge bg-danger">Out of Stock</span>
+                    }
+                    else if (totalStock < 5) 
+                    {
+                        <span class="badge bg-warning text-dark">Low Stock</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Enough</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

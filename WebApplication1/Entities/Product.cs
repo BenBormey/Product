@@ -13,6 +13,8 @@ namespace WebApplication1.Entities
         [Column("Category_ID")] public int CategoryId { get; set; }
         [Column("CreatedDate")] public DateTime? CreatedDate { get; set; }
         [Column("Code_or_barcode")] public string? CodeOrBarcode { get; set; }
+        [Column("QtyInstock")] 
+        public int? QtyInStock { get; set; }
         public Category? Category { get; set; }
         public ICollection<Stock> Stocks { get; set; }
         public ICollection<Promotion> Promotions { get; set; }

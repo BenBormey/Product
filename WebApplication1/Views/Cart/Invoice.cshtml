@@ -1,0 +1,183 @@
+﻿@using WebApplication1.Models.Invoice
+@model PrintOrderVM
+@{
+    Layout = null; // clean for printing
+    string Money(decimal v) => v.ToString("C");
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@(Model.IsReceipt ? "Receipt" : "Invoice") #@Model.OrderId</title>
+    <style>
+        :root {
+            --page: 210mm; /* A4 width */
+            --receipt: 80mm; /* POS width */
+            --fg: #111;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: var(--fg);
+            font: 14px/1.4 system-ui,"Khmer OS Battambang","Segoe UI",Arial
+        }
+
+        .page {
+            width: var(--page);
+            margin: 0 auto;
+            padding: 14mm 12mm;
+        }
+
+        .receipt .page {
+            width: var(--receipt);
+            padding: 6mm 4mm;
+        }
+
+        h1 {
+            margin: 0 0 2mm 0;
+            font-size: 20px
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .meta small {
+            color: var(--muted)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px
+        }
+
+        th, td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top
+        }
+
+        th {
+            text-align: left
+        }
+
+        .right {
+            text-align: right
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .buttons {
+            position: fixed;
+            right: 16px;
+            top: 16px;
+            display: flex;
+            gap: 8px
+        }
+
+        .btn {
+            border: 1px solid #cbd5e1;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer
+        }
+        @@media print {
+            .buttons
+
+        {
+            display: none
+        }
+
+        }
+    </style>
+</head>
+<body class="@(Model.IsReceipt ? "receipt" : "")">
+
+    <div class="buttons">
+        <button class="btn" onclick="window.print()">Print</button>
+    </div>
+
+    <div class="page">
+        <div class="row">
+            <div>
+                <h1>@(Model.IsReceipt ? "RECEIPT" : "INVOICE")</h1>
+                <div class="meta">
+                    <small>Order #@Model.OrderId</small><br />
+                    <small>@Model.OrderDate.ToString("dd MMM yyyy")</small>
+
+                </div>
+            </div>
+            <div class="right">
+                <div><strong>Your Shop Name</strong></div>
+                <div class="muted">Phnom Penh, Cambodia</div>
+                <div class="muted">@Model.Phone</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:18%">Code</th>
+                    <th>Item</th>
+                    <th class="right" style="width:8%">Qty</th>
+                    <th class="right" style="width:14%">Price</th>
+                    <th class="right" style="width:16%">Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var it in Model.Items)
+                {
+                    <tr>
+                        <td>@it.Code</td>
+                        <td>@it.Name</td>
+                        <td class="right">@it.Qty</td>
+                        <td class="right">@Money(it.UnitPrice)</td>
+                        <td class="right">@Money(it.LineTotal)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <table style="margin-top:6px;width:100%;border-collapse:collapse">
+            <tr>
+                <td class="right muted" style="width:78%">Subtotal</td>
+                <td class="right" style="width:22%">@Money(Model.Subtotal)</td>
+            </tr>
+            <tr>
+                <td class="right"><strong>Grand Total</strong></td>
+                <td class="right"><strong>@Money(Model.GrandTotal)</strong></td>
+            </tr>
+            @if (Model.IsReceipt || Model.Paid > 0 || Model.Change > 0 || Model.Due > 0)
+            {
+                <tr><td class="right muted">Paid</td><td class="right">@Money(Model.Paid)</td></tr>
+                @if (Model.Change > 0)
+                {
+                    <tr><td class="right muted">Change</td><td class="right">@Money(Model.Change)</td></tr>
+                }
+                @if (Model.Due > 0)
+                {
+                    <tr><td class="right muted">Due</td><td class="right" style="color:#dc2626">@Money(Model.Due)</td></tr>
+                }
+            }
+        </table>
+
+        @if (Model.IsReceipt)
+        {
+            <div class="muted" style="margin-top:8px;text-align:center">
+                <small>Thank you for your purchase!</small>
+            </div>
+        }
+    </div>
+</body>
+</html>

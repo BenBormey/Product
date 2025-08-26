@@ -10,6 +10,10 @@ namespace WebApplication1.Entities
         [Column("total_price")] public decimal TotalPrice { get; set; }
         [Column("order_date")] public DateTime? OrderDate { get; set; }
         [Column("status")] public string? Status { get; set; }  = "Peding";
+        [Column("cashreturn")] public decimal? cashreturn { get;set; }
+        [Column("CashAmount")] public decimal? cashAmount { get; set; }
+
+
 
         public User User { get; set; } = default!;
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

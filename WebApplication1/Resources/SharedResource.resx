@@ -249,8 +249,8 @@
   <data name="Food" xml:space="preserve">
     <value>Food</value>
   </data>
-  <data name="View" xml:space="preserve">
-    <value>View</value>
+  <data name="Views" xml:space="preserve">
+    <value>Views</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
@@ -263,5 +263,11 @@
   </data>
   <data name="AddCart" xml:space="preserve">
     <value>AddCart</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
   </data>
 </root>

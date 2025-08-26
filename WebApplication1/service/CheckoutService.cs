@@ -46,15 +46,32 @@ namespace WebApplication1.service
                 var addr = await _db.shippingAddresses.FirstOrDefaultAsync(a => a.UserId == userId, ct);
 
 
-                //if (addr is null) {
-                //    _db.Add(address); 
-                //}
-                //else
-                //{
-                //    addr.RecipientName = address.RecipientName; addr.Address = address.Address; addr.City = address.City;
-                //    addr.ZipCode = address.ZipCode; addr.Country = address.Country;
-                //}
-                //await _db.SaveChangesAsync(ct);
+                if (addr is null)
+                {
+                    address.UserId = userId; // ensure user association
+                    _db.Add(address);
+                }
+                else
+                {
+                    addr.RecipientName = address.RecipientName;
+                    addr.Address = address.Address;
+             
+                }
+
+
+
+
+                // check stock 
+
+                foreach (var iteam in cart.CartItems)
+                {
+                    var productlist  = await _db.products.Where(p=>p.Id == iteam.ProductId).FirstOrDefaultAsync();
+                    if (productlist.QtyInStock is null) throw new InvalidOperationException("Stock not found for product.");
+                    if (productlist.QtyInStock < iteam.Quantity) throw new InvalidOperationException("Insufficient stock for product.");
+                }
+
+
+            await _db.SaveChangesAsync(ct);
 
                 // 3) Create order
                 var subtotal = cart.CartItems.Sum(i => i.Product.Price * i.Quantity);
@@ -68,8 +85,7 @@ namespace WebApplication1.service
                 _db.Add(order);
                 await _db.SaveChangesAsync(ct);
 
-                // 4) Copy items into Order_Detail (snapshot unit price)
-
+               
 
                 foreach (var i in cart.CartItems)
                     _db.Add(new OrderDetail
@@ -78,8 +94,45 @@ namespace WebApplication1.service
                         ProductId = i.ProductId,
                         Qty = i.Quantity,
                         Price = i.Price
+                        
+
                     });
                 await _db.SaveChangesAsync(ct);
+
+                // assume cart already loaded with CartItems (and Quantity, ProductId)
+                foreach (var i in cart.CartItems)
+                {
+                    var product = await _db.products
+                        .FirstOrDefaultAsync(p => p.Id == i.ProductId, ct);
+
+                    if (product == null) continue; // or throw
+
+                    var current = product.QtyInStock;        // or QtyInstock if that's your prop
+                    var newQty = (current ?? 0) - i.Quantity;
+
+                    if (newQty < 0) newQty = 0;              // clamp or validate earlier
+
+                    product.QtyInStock = newQty;             // set back
+                }
+
+                await _db.SaveChangesAsync(ct);
+
+
+
+
+
+                //// update stock 
+                //foreach (var item in cart.CartItems)
+                //{
+                //    var stock = await _db.Set<Stock>()
+                //        .FirstOrDefaultAsync(s => s.ProductId == item.ProductId, ct);
+                //    if (stock is null) throw new InvalidOperationException("Stock not found for product.");
+                //    stock.Qty -= item.Quantity;
+                //    if (stock.Qty < 0) throw new InvalidOperationException("Insufficient stock for product.");
+                //}
+
+                await _db.SaveChangesAsync(ct);
+
 
                 // 5) Clear cart
                 _db.RemoveRange(cart.CartItems);

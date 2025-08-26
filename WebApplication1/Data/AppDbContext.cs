@@ -3,9 +3,11 @@ using WebApplication1.Entities;
 
 namespace WebApplication1.Data
 {
-    public class AppDbContext: DbContext
+    public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext>options):base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        // DbSets
         public DbSet<Product> products { get; set; }
         public DbSet<Stock> stocks { get; set; }
         public DbSet<Order> orders { get; set; }
@@ -17,52 +19,84 @@ namespace WebApplication1.Data
         public DbSet<Cart> carts { get; set; }
         public DbSet<Promotion> promotions { get; set; }
         public DbSet<Category> categories { get; set; }
-        public DbSet<CartItem> carItems { get; set; }
         public DbSet<Message> Messages => Set<Message>();
+        // 🔴 removed the duplicate: public DbSet<CartItem> carItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // ===== products =====
             modelBuilder.Entity<Product>(e =>
             {
-                e.ToTable("products"); // Table name exactly in DB
+                e.ToTable("products");
                 e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
 
-                e.Property(x => x.Id)
-                    .HasColumnName("id");
+                e.Property(x => x.Name).HasColumnName("name").HasMaxLength(250);
+                e.Property(x => x.Description).HasColumnName("description"); // MySQL TEXT
+                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
+                e.Property(x => x.QtyInStock).HasColumnName("QtyInstock");
+                e.Property(x => x.Image).HasColumnName("image").HasMaxLength(100);
+                e.Property(x => x.CodeOrBarcode).HasColumnName("code_or_barcode");
+                e.Property(x => x.CreatedDate).HasColumnName("created_date");
+                e.Property(x => x.CategoryId).HasColumnName("category_id");
 
-                e.Property(x => x.Name)
-      .HasColumnName("name")
-      .HasMaxLength(250)
-      .IsUnicode(true);
-
-                e.Property(x => x.Description)
-                 .HasColumnName("description")
-                 .IsUnicode(true);
-
-                e.Property(x => x.Price)
-                    .HasColumnName("price")
-                    .HasColumnType("decimal(10,2)");
-
-        
-
-                e.Property(x => x.Image)
-                    .HasColumnName("image")
-                    .HasMaxLength(100);
-
-
-
-                e.Property(x => x.CodeOrBarcode)
-                    .HasColumnName("Code_or_barcode");
-
-                e.Property(x => x.CreatedDate)
-                    .HasColumnName("CreatedDate");
-
-                e.Property(x => x.CategoryId)
-                    .HasColumnName("Category_ID"); // ✅ underscore matches DB
+                e.HasOne(x => x.Category)
+                 .WithMany(c => c.Products)
+                 .HasForeignKey(x => x.CategoryId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // AppDbContext.cs (OnModelCreating)
+            // ===== categories =====
+            modelBuilder.Entity<Category>(e =>
+            {
+                e.ToTable("categories");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.CategoryName).HasColumnName("category_name").HasMaxLength(100);
+                e.Property(x => x.Description).HasColumnName("description"); // TEXT
+                e.Property(x => x.CreatedAt).HasColumnName("created_at");
+                e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+                e.Property(x => x.IsActive).HasColumnName("is_active");
+            });
+
+            // ===== users =====
+         modelBuilder.Entity<User>(e =>
+{
+    e.ToTable("users");
+    e.HasKey(x => x.Id);
+    e.Property(x => x.Id).HasColumnName("id");
+    e.Property(x => x.Name).HasColumnName("name");
+    e.Property(x => x.Email).HasColumnName("email");
+    e.Property(x => x.Password).HasColumnName("password");
+    e.Property(x => x.Phone).HasColumnName("phone");
+    e.Property(x => x.RegisteredDate).HasColumnName("registered_date");
+    e.Property(x => x.Address).HasColumnName("address");
+
+    // if the DB column is NOT literally "role", put the exact name here:
+  // <- change to the real name if different
+});
+
+
+            // ===== shipping_addresses =====
+            modelBuilder.Entity<ShippingAddress>(e =>
+            {
+                e.ToTable("shipping_addresses");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.UserId).HasColumnName("user_id");
+                e.Property(x => x.RecipientName).HasColumnName("recipient_name").HasMaxLength(200);
+                e.Property(x => x.Address).HasColumnName("address").HasColumnType("longtext");
+           
+
+                e.HasOne(d => d.User)
+                 .WithMany(p => p.shipping_address)
+                 .HasForeignKey(d => d.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ===== orders =====
             modelBuilder.Entity<Order>(e =>
             {
                 e.ToTable("orders");
@@ -73,138 +107,127 @@ namespace WebApplication1.Data
                 e.Property(x => x.OrderDate).HasColumnName("order_date");
                 e.Property(x => x.Status).HasColumnName("status").HasMaxLength(50);
 
+                e.HasOne(o => o.User)
+                 .WithMany(u => u.orders)
+                 .HasForeignKey(o => o.UserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
                 e.HasMany(x => x.OrderDetails)
                  .WithOne(d => d.Order!)
                  .HasForeignKey(d => d.OrderId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // ===== order_detail =====
             modelBuilder.Entity<OrderDetail>(e =>
             {
-                e.ToTable("Order_Detail");     // exact table name from your diagram
+                e.ToTable("order_detail");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.OrderId).HasColumnName("order_id");
                 e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Qty).HasColumnName("qty");
                 e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
-                e.HasOne(i => i.Product)
-               .WithMany(p => p.OrderDetails)
-               .HasForeignKey(i => i.ProductId)
-               .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(d => d.Product)
+                 .WithMany(p => p.OrderDetails)
+                 .HasForeignKey(d => d.ProductId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
-            // AppDbContext.OnModelCreating
+
+            // ===== cart =====
             modelBuilder.Entity<Cart>(e =>
             {
                 e.ToTable("cart");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.UserId).HasColumnName("user_id");
-                e.Property(x => x.CreateAt).HasColumnName("Create_At"); // ប្តូរ "CreatedAt" បើ column ឈ្មោះផ្សេង
+                e.Property(x => x.CreateAt).HasColumnName("create_at");
+
                 e.HasMany(x => x.CartItems)
                  .WithOne(i => i.Cart!)
                  .HasForeignKey(i => i.CartId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // ===== cart_items =====
             modelBuilder.Entity<CartItem>(e =>
             {
                 e.ToTable("cart_items");
                 e.HasKey(x => x.Id);
-
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.CartId).HasColumnName("cart_id");
-                e.Property(x => x.ProductId).HasColumnName("product_id");   // ✅ important
+                e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Quantity).HasColumnName("quantity");
-                e.Property(x => x.Price).HasColumnName("price");
+                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
+
                 e.HasOne(i => i.Product)
                  .WithMany(p => p.CartItems)
                  .HasForeignKey(i => i.ProductId)
                  .OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<User>(e =>
+
+            // ===== stocks =====
+            modelBuilder.Entity<Stock>(e =>
             {
-                e.ToTable("users");
+                e.ToTable("stock");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("id");
-                e.Property(x => x.Name).HasColumnName("name").HasMaxLength(100);
-                e.Property(x => x.Email).HasColumnName("email").HasMaxLength(100);
-                e.Property(x => x.Password).HasColumnName("password").HasMaxLength(100);
-                e.Property(x => x.Phone).HasColumnName("phone").HasMaxLength(20);
-                e.Property(x => x.RegisteredDate).HasColumnName("RegisteredDate");
-                e.Property(x => x.Address).HasColumnName("Address");
-                e.Property(x => x.Role).HasColumnName("role").HasMaxLength(50);
+                e.Property(x => x.ProductId).HasColumnName("product_id");
+                e.Property(x => x.Qty).HasColumnName("qty");
+                e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+
+                e.HasOne(s => s.Product)
+                 .WithMany(p => p.Stocks)
+                 .HasForeignKey(s => s.ProductId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
-            modelBuilder.Entity<Category>(entity =>
+
+            // ===== reviews =====
+            modelBuilder.Entity<Review>(e =>
             {
-                entity.ToTable("categories");
+                e.ToTable("reviews");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.UserId).HasColumnName("user_id");
+                e.Property(x => x.ProductId).HasColumnName("product_id");
+                e.Property(x => x.Rating).HasColumnName("rating");
+                e.Property(x => x.Comment).HasColumnName("comment"); // TEXT
+                e.Property(x => x.ReviewDate).HasColumnName("review_date");
 
-                entity.HasKey(e => e.Id);
+                e.HasOne(r => r.User)
+                 .WithMany(u => u.reviews)
+                 .HasForeignKey(r => r.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
 
-                entity.Property(e => e.Id)
-                      .HasColumnName("id");
-
-                entity.Property(e => e.CategoryName)
-                      .HasColumnName("category_name")
-                      .HasMaxLength(100);
-
-                entity.Property(e => e.Description)
-                      .HasColumnName("description");
-
-                entity.Property(e => e.CreatedAt)
-                      .HasColumnName("created_at");
-
-                entity.Property(e => e.UpdatedAt)
-                      .HasColumnName("updated_at");
-
-                entity.Property(e => e.IsActive)
-                      .HasColumnName("is_active");
+                e.HasOne(r => r.Product)
+                 .WithMany(p => p.Reviews)
+                 .HasForeignKey(r => r.ProductId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
-            modelBuilder.Entity<ShippingAddress>(entity =>
+
+            // ===== promotions =====
+            modelBuilder.Entity<Promotion>(e =>
             {
-                entity.ToTable("shipping_addresses");
+                e.ToTable("promotions");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.ProductId).HasColumnName("product_id");
+                e.Property(x => x.DiscountPercent).HasColumnName("discount_percent");
+                e.Property(x => x.StartDate).HasColumnName("start_date");
+                e.Property(x => x.EndDate).HasColumnName("end_date");
 
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Id)
-                      .HasColumnName("id");
-
-                entity.Property(e => e.UserId)
-                      .HasColumnName("user_id");
-
-                entity.Property(e => e.RecipientName)
-                      .HasColumnName("recipient_name")
-                      .HasMaxLength(200);
-
-                entity.Property(e => e.Address)
-                      .HasColumnName("address")
-                      .HasColumnType("varchar(max)");
-
-                entity.Property(e => e.City)
-                      .HasColumnName("city")
-                      .HasMaxLength(100);
-
-                entity.Property(e => e.ZipCode)
-                      .HasColumnName("zip_code")
-                      .HasMaxLength(20);
-
-                entity.Property(e => e.Country)
-                      .HasColumnName("country")
-                      .HasMaxLength(50);
-
-                // 🔗 Relationship with Users
-                entity.HasOne(d => d.User)
-                      .WithMany(p => p.shipping_address)
-                      .HasForeignKey(d => d.UserId)
-                      .HasConstraintName("FK_shipping_addresses_users");
+                e.HasOne(p => p.Product)
+                 .WithMany(pr => pr.Promotions)
+                 .HasForeignKey(p => p.ProductId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
 
-
+            // ===== messages =====
             modelBuilder.Entity<Message>(e =>
             {
                 e.ToTable("messages");
                 e.HasKey(x => x.Id);
-
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.SenderId).HasColumnName("sender_id");
                 e.Property(x => x.ReceiverId).HasColumnName("receiver_id");
@@ -214,9 +237,7 @@ namespace WebApplication1.Data
                 e.Property(x => x.IsRead).HasColumnName("is_read");
                 e.Property(x => x.IsArchived).HasColumnName("is_archived");
                 e.Property(x => x.ParentId).HasColumnName("parent_id");
-
             });
         }
-
     }
 }

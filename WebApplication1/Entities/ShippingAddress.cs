@@ -9,9 +9,7 @@ namespace WebApplication1.Entities
         [Column("user_id")] public int UserId { get; set; }
         [Column("recipient_name")] public string RecipientName { get; set; }
         [Column("address")] public string Address { get; set; } = default!;
-        [Column("city")] public string City { get; set; } = default!;
-        [Column("zip_code")] public string? ZipCode { get; set; }
-        [Column("country")] public string? Country { get; set; }
+   
 
         public User User { get; set; } = default!;
     }

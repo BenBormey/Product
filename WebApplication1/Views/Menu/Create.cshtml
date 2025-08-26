@@ -1,61 +1,194 @@
 ﻿@model WebApplication1.Models.CreateProductVM
-
 @{
     ViewData["Title"] = "Create Product";
 }
 
-<div class="panel">
-    <div class="panel-header"><div class="panel-title">Create Product</div></div>
+<style>
+    /* minimal theme polish for dark admin */
+    .card-elev {
+        border: 1px solid rgba(255,255,255,.06);
+        background: rgba(26,28,34,.75);
+        backdrop-filter: blur(6px);
+    }
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data" class="row g-3">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    .accent-left {
+        position: relative;
+    }
 
-        <div class="col-md-6">
-            <label asp-for="Name" class="form-label"></label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+        .accent-left::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 6px;
+            border-radius: .5rem 0 0 .5rem;
+            background: linear-gradient(180deg,#3b82f6,#22d3ee);
+        }
+
+    /* Remove annoying glow on focus */
+    .form-control:focus,
+    .form-select:focus,
+    textarea:focus {
+        box-shadow: none !important;
+        border-color: #3b82f6 !important; /* blue accent */
+        background-color: #16181f; /* keep dark bg */
+        /* color: #f1f5f9; /* light text */ */
+    }
+
+    /* Optional: smooth transition */
+    .form-control, .form-select, textarea {
+        transition: border-color .2s ease, background-color .2s ease;
+    }
+
+
+    
+
+    .form-text {
+        color: #9aa3b2 !important;
+    }
+
+    .floating label {
+        color: #334155;
+        ;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        border: 0;
+    }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+    .btn-outline-secondary {
+        color: #cbd5e1;
+        border-color: #334155;
+    }
+
+    .preview-img {
+        max-height: 170px;
+        object-fit: cover;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0 text-light">Create Product</h3>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Back to List</a>
+    </div>
+
+    <div class="card card-elev accent-left rounded-4">
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+                <div class="row g-4">
+                    <!-- left column -->
+                    <div class="col-lg-8">
+                        <div class="row g-3">
+                            <div class="col-12 floating form-floating">
+                                <input asp-for="Name" class="form-control" id="fName" placeholder=" " autocomplete="off">
+                                <label for="fName">Product Name</label>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="input-group form-floating">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Price" class="form-control" id="fPrice" placeholder="0.00" inputmode="decimal">
+                                    <label for="fPrice">Price</label>
+                                </div>
+                                <div class="form-text mt-1">Use 0.00 if free/promo.</div>
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="QtyInStock" class="form-control" id="fQty" placeholder="0" inputmode="numeric" min="0">
+                                <label for="fQty">Stock Qty</label>
+                                <span asp-validation-for="QtyInStock" class="text-danger small"></span>
+                                <!-- If your VM property is QtyInstock, change asp-for to QtyInstock -->
+                            </div>
+
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="form-select" id="fCat" aria-label="Category">
+                                    <option value=""></option>
+                                </select>
+                                <label for="fCat">Category</label>
+                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="CodeOrBarcode" class="form-control" id="fCode" placeholder=" ">
+                                <label for="fCode">Code / Barcode</label>
+                                <div class="form-text mt-1">Use your SKU or scan barcode (must be unique).</div>
+                                <span asp-validation-for="CodeOrBarcode" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 form-floating">
+                                <textarea asp-for="Description" class="form-control" id="fDesc" placeholder=" " style="height:130px"></textarea>
+                                <label for="fDesc">Description</label>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- right column -->
+                    <div class="col-lg-4">
+                        <div class="card card-elev rounded-4">
+                            <div class="card-body">
+                                <label class="form-label">Image</label>
+                                <input asp-for="ImageFile" type="file" class="form-control mb-2" accept="image/*" id="fileInp" />
+                                <div class="form-text mb-2">PNG/JPG up to ~3MB.</div>
+                                <div class="ratio ratio-1x1 border rounded-3 overflow-hidden">
+                                    <img id="imgPreview" class="preview-img w-100 h-100 d-none" alt="Preview">
+                                    <div id="imgPlaceholder" class="d-flex align-items-center justify-content-center text-secondary">No image</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i>Save
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+            </form>
         </div>
-
-        <div class="col-md-3">
-            <label asp-for="Price" class="form-label"></label>
-            <input asp-for="Price" class="form-control" />
-            <span asp-validation-for="Price" class="text-danger"></span>
-        </div>
-
-
-        <div class="col-md-3">
-            <label asp-for="CategoryId" class="form-label"></label>
-            <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="form-select">
-                <option value="">-- Select Category --</option>
-            </select>
-            <span asp-validation-for="CategoryId" class="text-danger"></span>
-        </div>
-
-
-
-        <div class="col-md-6">
-            <label asp-for="CodeOrBarcode" class="form-label"></label>
-            <input asp-for="CodeOrBarcode" class="form-control" />
-            <span asp-validation-for="CodeOrBarcode" class="text-danger"></span>
-        </div>
-
-        <div class="col-md-6">
-            <label class="form-label">Image</label>
-            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
-        </div>
-
-        <div class="col-12">
-            <label asp-for="Description" class="form-label"></label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-        </div>
-
-        <div class="col-12">
-            <button class="btn btn-primary">Save</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-        </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // bootstrap validation
+        (function () {
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(f => {
+                f.addEventListener('submit', e => {
+                    if (!f.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
+                    f.classList.add('was-validated');
+                });
+            });
+        })();
+
+        // image preview
+        const fileInp = document.getElementById('fileInp');
+        const img = document.getElementById('imgPreview');
+        const ph = document.getElementById('imgPlaceholder');
+        if (fileInp) {
+            fileInp.addEventListener('change', () => {
+                const file = fileInp.files && fileInp.files[0];
+                if (!file) { img.classList.add('d-none'); ph.classList.remove('d-none'); img.src=''; return; }
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; img.classList.remove('d-none'); ph.classList.add('d-none'); };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
 }
+
+<!-- optional if not already loaded -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"> -->

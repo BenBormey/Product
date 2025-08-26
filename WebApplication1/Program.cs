@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,25 +8,28 @@ using System;
 using System.Globalization;
 using WebApplication1.Data;
 using WebApplication1.Entities;
+using WebApplication1.Exspention;
 using WebApplication1.Localization;
 using WebApplication1.Repository;
-using WebApplication1.service; // where AppDbContext lives
+using WebApplication1.service;
+using WebApplication1.Validator;
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.serviceDescriptors();
 
 // 1) Add services to the container (ALL Add... go here)
-builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IPaymentService, DemoPaymentService>();
+builder.Services.AddControllersWithViews().AddFluentValidation();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+var cs = builder.Configuration.GetConnectionString("Default");
+
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseMySql(cs, ServerVersion.AutoDetect(cs)));
 builder.Services.AddSession();
 //builder.Services.AddScoped<CartService>(); builder.Services.AddScoped<AnalyticsEfService>();
-builder.Services.AddScoped<MessageService>();
-builder.Services.AddScoped<CheckoutService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddSingleton<IQrService, QrService>();
+
 
 builder.Services.AddAppLocalization(builder.Configuration);
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -86,6 +91,6 @@ var locOpts = app.Services.GetRequiredService<
 app.UseRequestLocalization(locOpts);
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Logout}/{id?}");
+    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
 app.Run();

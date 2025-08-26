@@ -1,0 +1,155 @@
+﻿@using System.Globalization
+@model IEnumerable<WebApplication1.Entities.Order>
+@{
+    var pendingCount = Model?.Count() ?? 0;
+}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Pending Orders</h5>
+        <span class="badge bg-warning text-dark">@(pendingCount)</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-striped table-hover table-sm align-middle mb-0">
+            <thead class="sticky-top">
+                <tr>
+                    <th class="text-muted">#</th>
+                    <th>Order ID</th>
+                    <th>Order Date</th>
+                    <th class="text-end">Total</th>
+                    <th>Status</th>
+                    <th class="text-end"></th>
+                    <th class="text-end"></th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model != null && Model.Any())
+            {
+                var i = 1;
+                foreach (var x in Model)
+                {
+                    <tr>
+                        <td class="text-muted">@i</td>
+                        <td>@x.Id</td>
+                        <td>@(x.OrderDate?.ToString("yyyy-MM-dd HH:mm"))</td>
+                        <td class="text-end">@x.TotalPrice.ToString("N2")</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        </td>
+                        <td class="text-end"></td>
+                        <td class="text-end"></td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                    <a asp-controller="Cart" asp-action="DetailsOrder" asp-route-id="@x.Id"
+                                   class="btn btn-outline-secondary" title="Details">
+                                    <i class="bi bi-card-text"></i>
+                                </a>
+
+
+                                    <a asp-action="Choose"
+                                       asp-controller="Payments"
+                                       asp-route-orderId="@x.Id"
+                                       class="btn btn-outline-secondary">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+                              
+                                   
+                                    <a href="#"
+                                       class="btn btn-outline-danger"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#cancelModal"
+                                       data-id="@x.Id"
+                                       data-total="@x.TotalPrice"
+                                       data-date="@((x.OrderDate ?? DateTime.Now).ToString("yyyy-MM-dd HH:mm"))"
+                                       title="Cancel Order">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+
+
+
+                              
+                            </div>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        No pending orders.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Cancel confirm modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Cancel Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2 text-body">Are you sure you want to cancel this order?</p>
+
+                <!-- Order highlight -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-secondary">Order ID:</span>
+                    <span id="orderIdBadge" class="badge rounded-pill text-bg-danger fs-6 px-3 py-2">—</span>
+                </div>
+
+                <!-- (Optional) show more info -->
+                <div class="small text-secondary mt-2" id="orderExtraInfo" style="display:none"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="confirmCancelBtn" href="#" class="btn btn-danger">
+                    <i class="bi bi-x-circle me-1"></i> Yes, Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        const cancelModal = document.getElementById('cancelModal');
+        cancelModal.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            const orderId = btn.getAttribute('data-id');
+            const total   = btn.getAttribute('data-total');
+            const date    = btn.getAttribute('data-date');
+
+            // Badge highlight (ធំ ងាយមើល)
+            const badge = cancelModal.querySelector('#orderIdBadge');
+            badge.textContent = orderId;
+
+            // Build confirm URL
+            const baseUrl = '@Url.Action("RemoveOrder", "Cart")';
+            cancelModal.querySelector('#confirmCancelBtn').href = baseUrl + '?orderId=' + orderId;
+
+            // (Optional) extra info under badge
+            const extra = cancelModal.querySelector('#orderExtraInfo');
+            if (total || date) {
+              extra.style.display = 'block';
+              extra.textContent = `Date: ${date ?? '-'} • Total: ${total ?? '-'}`;
+            } else {
+              extra.style.display = 'none';
+            }
+        });
+    </script>
+}

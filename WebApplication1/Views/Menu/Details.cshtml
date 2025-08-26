@@ -28,6 +28,10 @@
                 <span class="meta-value">@Model.CategoryId</span>
             </div>
             <div class="meta-item">
+                <span class="meta-label">Stock</span>
+                <span class="meta-value">@Model.QtyInStock</span>
+            </div>
+            <div class="meta-item">
                 <span class="meta-label">Created</span>
                 <span class="meta-value">@Model.CreatedDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
             </div>
