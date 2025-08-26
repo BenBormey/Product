@@ -2,17 +2,18 @@
     ViewData["Title"] = "Sign in";
     var returnUrl = ViewBag.ReturnUrl as string;
 }
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> T
 <div class="panel" style="max-width:420px;margin:40px auto">
-    <div class="panel-header"><div class="panel-title">Sign in</div></div>
+    <div class="panel-header"><div class="panel-title">@T["Sign in"]</div></div>
 
     <form method="post" asp-action="Login">
         <input type="hidden" name="returnUrl" value="@returnUrl" />
         <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input name="email" type="email" class="form-control" required />
+            <label class="form-label">@T["Email"]</label>
+            <input name="email" type="email" class="form-control" required />  
         </div>
         <div class="mb-3">
-            <label class="form-label">Password</label>
+            <label class="form-label">@T["Password"]</label>
             <input name="password" type="password" class="form-control" required />
         </div>
         @if (!ViewData.ModelState.IsValid)
@@ -25,6 +26,6 @@
      }
             </div>
         }
-        <button class="btn btn-primary w-100">Sign in</button>
+        <button class="btn btn-primary w-100">@T["Sign in"]</button>
     </form>
 </div>

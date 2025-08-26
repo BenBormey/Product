@@ -1,0 +1,29 @@
+﻿@using WebApplication1.Entities
+@model Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<h3>Order @Model.Id</h3>
+<p>Status: <strong>@Model.Status</strong> | Payment:</p>
+
+<table class="table table-dark table-sm align-middle">
+    <thead><tr><th>Item</th><th class="text-end">Qty</th><th class="text-end">Unit Price</th><th class="text-end">Line Total</th></tr></thead>
+    <tbody>
+        @foreach (var i in Model.OrderDetails)
+        {
+            <tr>
+              
+                <td class="text-end">@i.Qty</td>
+                <td class="text-end">@i.Price.ToString("C")</td>
+                <td class="text-end">@i.Qty *@i.Price </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="text-end">
+    <strong>Total: @Model.TotalPrice.ToString("C")</strong>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mt-3">← Back to History</a>

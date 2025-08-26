@@ -270,4 +270,13 @@
   <data name="Pending" xml:space="preserve">
     <value>កំពុងរង់ចាំ</value>
   </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>ចុះឈ្មោះ</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>អ៊ីមែល</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>ពាក្យសម្ងាត់</value>
+  </data>
 </root>

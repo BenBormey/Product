@@ -5,9 +5,17 @@
 }
 
 <div class="panel">
+
     <!-- Toolbar -->
     <div class="d-flex align-items-center gap-2 mb-3">
         <h2 class="m-0">Team</h2>
+
+        <!-- Add user button -->
+   
+        <a asp-controller="Account" asp-action="Create" class="nav-link">
+             <span>Add member</span>
+        </a>
+   
 
         <form method="get" class="ms-auto d-flex align-items-center gap-2">
             <select asp-for="Role" asp-items="Model.RoleOptions" class="form-select form-select-sm w-auto">
@@ -19,6 +27,16 @@
             <a asp-action="Index" class="btn btn-sm btn-link">Reset</a>
         </form>
     </div>
+
+    <!-- Alerts -->
+    @if (TempData["ok"] is string ok && !string.IsNullOrWhiteSpace(ok))
+    {
+        <div class="alert alert-success py-2">@ok</div>
+    }
+    @if (TempData["err"] is string err && !string.IsNullOrWhiteSpace(err))
+    {
+        <div class="alert alert-danger py-2">@err</div>
+    }
 
     @if (!Model.Items.Any())
     {
@@ -47,6 +65,7 @@
                     {
                         var initials = string.Join("", (m.FullName ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
                         .Take(2).Select(s => char.ToUpperInvariant(s[0])));
+
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -89,6 +108,9 @@
         </div>
     }
 </div>
+
+<!-- Add User Modal -->
+
 @section Styles {
     <style>
         /* Team page styles */
@@ -134,4 +156,8 @@
             min-width: 140px;
         }
     </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

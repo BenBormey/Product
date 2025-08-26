@@ -20,41 +20,82 @@ namespace WebApplication1.Controllers
             this._env = end;    
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index(string? q, int? categoryId)
         {
-            // options for the dropdown + "All"
-            var options = await _db.categories
+            var now = DateTime.UtcNow;
+            var term = (q ?? "").Trim();
+
+            // ---- Category dropdown (+ All) ----
+            var categoryOptions = await _db.categories
+                .AsNoTracking()
+                .Where(c => c.CategoryName != null)
                 .OrderBy(c => c.CategoryName)
-                .Where(c => c.CategoryName != null) // Ensure no null values
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CategoryName! })
                 .ToListAsync();
 
-            // base query
-            var query = _db.products
-                .AsNoTracking()
-                .Include(p => p.Category)
-                .Where(p=> p.QtyInStock > 0)
-                .AsQueryable();
+            categoryOptions.Insert(0, new SelectListItem
+            {
+                Value = "0",
+                Text = "All",
+                Selected = !(categoryId.HasValue && categoryId.Value > 0)
+            });
 
-            if (!string.IsNullOrWhiteSpace(q))
-                query = query.Where(p => p.Name.Contains(q));
+            // ---- Base query ----
+            var baseQuery = _db.products
+                .AsNoTracking()
+                .Where(p => p.QtyInStock > 0);
+
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                baseQuery = baseQuery.Where(p =>
+                    EF.Functions.Like(p.Name, $"%{term}%") ||
+                    (p.CodeOrBarcode != null && EF.Functions.Like(p.CodeOrBarcode, $"%{term}%"))
+                );
+            }
 
             if (categoryId.HasValue && categoryId.Value > 0)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
+                baseQuery = baseQuery.Where(p => p.CategoryId == categoryId.Value);
 
-            var items = await query
+            // ---- Project to VM + active promotion (max %) ----
+            var items = await baseQuery
                 .OrderByDescending(p => p.CreatedDate)
+                .Select(p => new ProductListItemVM
+                {
+                    Id = p.Id,
+                    Name = p.Name!,
+                    Image = p.Image,
+                    CategoryName = p.Category != null ? p.Category.CategoryName! : "-",
+                    Price = p.Price,
+                    QtyInStock = (int)p.QtyInStock,
+                    CreatedDate = (DateTime)p.CreatedDate,
+                    // promotion.discount_percent is FLOAT in your schema → map to double?
+                    DiscountPercent = _db.promotions
+                        .Where(pr => pr.ProductId == p.Id &&
+                                     pr.StartDate <= now &&
+                                     now <= pr.EndDate)
+                        .Max(pr => (double?)pr.DiscountPercent) ?? 0d
+                })
                 .ToListAsync();
+
+            // compute final price in C# to avoid provider-cast issues
+            foreach (var it in items)
+            {
+                it.IsOnSale = it.DiscountPercent > 0d;
+                it.FinalPrice =  (decimal)it.DiscountPercent;
+            }
 
             var vm = new ProductIndexVM
             {
-                Items = items,
-                Q = q,
+                Q = term,
                 CategoryId = categoryId,
-                CategoryOptions = options
+                CategoryOptions = categoryOptions,
+                Items = items
             };
+
             return View(vm);
         }
+
         public async Task<IActionResult> Details(int id)
         {
             var item = await _db.products.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);

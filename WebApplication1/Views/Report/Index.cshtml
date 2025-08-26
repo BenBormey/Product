@@ -1,0 +1,340 @@
+﻿@{
+    ViewData["Title"] = "Reports";
+    string from = Context.Request.Query["from"];
+    string to = Context.Request.Query["to"];
+    if (string.IsNullOrEmpty(from)) from = DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd");
+    if (string.IsNullOrEmpty(to)) to = DateTime.Today.ToString("yyyy-MM-dd");
+}
+
+<h2 class="mb-3">Reports</h2>
+
+<form id="rangeForm" method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+        <input class="form-control" type="date" id="from" name="from" value="@from" />
+    </div>
+    <div class="col-auto">
+        <input class="form-control" type="date" id="to" name="to" value="@to" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Apply</button>
+        <a asp-action="Index" class="btn btn-link">Reset</a>
+    </div>
+</form>
+
+<!-- ====================== SALES ====================== -->
+<h5 class="text-muted text-uppercase mb-2">Sales</h5>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="SalesSummary" asp-route-from="@from" asp-route-to="@to" asp-route-period="day">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-clipboard-data display-6"></i>
+                <div><h5 class="mb-1">Sales Summary</h5><div class="text-secondary small">Orders, Revenue, AOV</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByChannel" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-shop-window display-6"></i>
+                <div><h5 class="mb-1">Sales by Channel</h5><div class="text-secondary small">Dine-in / Takeaway / Delivery</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByPayment" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-wallet2 display-6"></i>
+                <div><h5 class="mb-1">Sales by Payment</h5><div class="text-secondary small">Cash / Card / Transfer</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Hourly" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-clock-history display-6"></i>
+                <div><h5 class="mb-1">Hourly Sales</h5><div class="text-secondary small">Busiest hours</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Discounts" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-percent display-6"></i>
+                <div><h5 class="mb-1">Discounts & Promotions</h5><div class="text-secondary small">Usage & impact</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Cancellations" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-x-octagon display-6"></i>
+                <div><h5 class="mb-1">Cancellations & Refunds</h5><div class="text-secondary small">Rate & reasons</div></div>
+            </div>
+        </a>
+    </div>
+
+    <!-- existing: Daily -->
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Daily" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-calendar3 display-6"></i>
+                <div><h5 class="mb-1">Daily Report</h5><div class="text-secondary small">Revenue per day</div></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- ====================== PRODUCT & MENU ====================== -->
+<h5 class="text-muted text-uppercase mb-2">Product & Menu</h5>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+
+    <!-- existing: ByCustomer, ByProduct, ByCategory -->
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByCustomer" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-people display-6"></i>
+                <div><h5 class="mb-1">Report by Customer</h5><div class="text-secondary small">Revenue & Qty by customer</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByProduct" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-bag-check display-6"></i>
+                <div><h5 class="mb-1">Report by Product</h5><div class="text-secondary small">Top sellers</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByCategory" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-grid-1x2 display-6"></i>
+                <div><h5 class="mb-1">Report by Category</h5><div class="text-secondary small">Group by category</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="TopProducts" asp-route-from="@from" asp-route-to="@to" asp-route-top="20">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-graph-up-arrow display-6"></i>
+                <div><h5 class="mb-1">Top Products</h5><div class="text-secondary small">By qty/revenue</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="SlowProducts" asp-route-from="@from" asp-route-to="@to" asp-route-min="5">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-thermometer-low display-6"></i>
+                <div><h5 class="mb-1">Slow Movers</h5><div class="text-secondary small">Low sales items</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ProductMargin" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-cash-coin display-6"></i>
+                <div><h5 class="mb-1">Product Margin</h5><div class="text-secondary small">Revenue, COGS, GM%</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="AddOns" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-plus-square display-6"></i>
+                <div><h5 class="mb-1">Add-ons / Modifiers</h5><div class="text-secondary small">Upsell performance</div></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- ====================== INVENTORY ====================== -->
+<h5 class="text-muted text-uppercase mb-2">Inventory</h5>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="StockOnHand">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-box-seam display-6"></i>
+                <div><h5 class="mb-1">Stock On Hand</h5><div class="text-secondary small">Qty & valuation</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="LowStock">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-exclamation-triangle display-6"></i>
+                <div><h5 class="mb-1">Low / Out of Stock</h5><div class="text-secondary small">Reorder alerts</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="StockInVsOut" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-arrows-expand display-6"></i>
+                <div><h5 class="mb-1">Stock IN vs OUT</h5><div class="text-secondary small">Usage vs purchases</div></div>
+            </div>
+        </a>
+    </div>
+
+    <!-- existing: StockMovement -->
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="StockMovement" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-arrow-left-right display-6"></i>
+                <div><h5 class="mb-1">Stock Movement</h5><div class="text-secondary small">IN / OUT / Net</div></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- ====================== CUSTOMER ====================== -->
+<h5 class="text-muted text-uppercase mb-2">Customer</h5>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="CustomerCohorts" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-diagram-3 display-6"></i>
+                <div><h5 class="mb-1">Cohorts / Repeat Rate</h5><div class="text-secondary small">New vs Returning</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Rfm" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-grid display-6"></i>
+                <div><h5 class="mb-1">RFM Segmentation</h5><div class="text-secondary small">Recency / Frequency / Monetary</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Ltv" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-person-heart display-6"></i>
+                <div><h5 class="mb-1">Customer LTV</h5><div class="text-secondary small">Lifetime value</div></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- ====================== OPERATIONS & FINANCE ====================== -->
+<h5 class="text-muted text-uppercase mb-2">Operations & Finance</h5>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="ByStaff" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-person-workspace display-6"></i>
+                <div><h5 class="mb-1">Sales by Staff</h5><div class="text-secondary small">Cashier/Waiter performance</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="OperationsSla" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-speedometer2 display-6"></i>
+                <div><h5 class="mb-1">Kitchen SLA</h5><div class="text-secondary small">Prep/ready time</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Voids" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-shield-exclamation display-6"></i>
+                <div><h5 class="mb-1">Voids / Corrections</h5><div class="text-secondary small">Audit trail</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Tax" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-receipt display-6"></i>
+                <div><h5 class="mb-1">Tax Report</h5><div class="text-secondary small">Taxable sales, tax collected</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="CashDrawer" asp-route-date="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-cash-stack display-6"></i>
+                <div><h5 class="mb-1">Cash Drawer</h5><div class="text-secondary small">Open/close, over/short</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="PnL" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-journal-richtext display-6"></i>
+                <div><h5 class="mb-1">P&L Snapshot</h5><div class="text-secondary small">Revenue − COGS − Opex</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Campaigns" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-megaphone display-6"></i>
+                <div><h5 class="mb-1">Campaign Performance</h5><div class="text-secondary small">Coupons & uplift</div></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a class="card h-100 bg-dark text-light text-decoration-none"
+           asp-action="Feedback" asp-route-from="@from" asp-route-to="@to">
+            <div class="card-body d-flex gap-3">
+                <i class="bi bi-chat-dots display-6"></i>
+                <div><h5 class="mb-1">Ratings & Feedback</h5><div class="text-secondary small">Quality insights</div></div>
+            </div>
+        </a>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
@@ -20,12 +20,18 @@ builder.Services.serviceDescriptors();
 builder.Services.AddControllersWithViews().AddFluentValidation();
 
 
-var cs = builder.Configuration.GetConnectionString("Default");
-
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseMySql(cs, ServerVersion.AutoDetect(cs)));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddSession();
 //builder.Services.AddScoped<CartService>(); builder.Services.AddScoped<AnalyticsEfService>();
+
+// after builder.Services.AddAuthentication(...).AddCookie(...)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";               // when unauthenticated
+    options.AccessDeniedPath = "/Account/AccessDenied"; // when authenticated but no permission
+});
 
 
 builder.Services.AddAppLocalization(builder.Configuration);
@@ -84,6 +90,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication(); 
 app.UseAuthorization();
 var locOpts = app.Services.GetRequiredService<
     Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>().Value;
@@ -91,6 +98,6 @@ var locOpts = app.Services.GetRequiredService<
 app.UseRequestLocalization(locOpts);
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();

@@ -11,5 +11,6 @@ namespace WebApplication1.Entities
         [Column("price")] public decimal Price { get; set; }
         public Cart Cart { get; set; } = default!;
         public Product Product { get; set; } = default!;
+        public decimal dis { get; set; }
     }
 }

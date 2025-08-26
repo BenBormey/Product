@@ -24,7 +24,7 @@ namespace WebApplication1.service
 
             var subtotal = lines.Sum(x => x.Subtotal);
             var addr = await _db.Set<ShippingAddress>().FirstOrDefaultAsync(a => a.UserId == userId, ct);
-
+            
             return new CheckoutVM(lines, subtotal, deliveryFee, discount, subtotal + deliveryFee - discount, addr);
         }
 

@@ -4,6 +4,23 @@
 @{
     ViewData["Title"] = "Products";
 }
+<style>
+    .p-promo-slot {
+        display: flex;
+        align-items: center;
+        gap: .25rem;
+        padding: .25rem .5rem;
+        border-radius: 10px;
+        background: rgba(255, 99, 71, .06);
+        border: 1px dashed rgba(255, 99, 71, .35);
+    }
+
+    .bg-danger-subtle {
+        background: rgba(255, 99, 71, .15) !important;
+    }
+</style>
+
+
 
 <div class="panel">
     <!-- Toolbar -->
@@ -60,6 +77,10 @@
                     <div class="p-thumb">
                         <img src="@(string.IsNullOrWhiteSpace(p.Image) ? "/images/placeholder-food.jpg" : p.Image)" alt="@p.Name" loading="lazy" />
                         <span class="p-price">$ @p.Price.ToString("N2")</span>
+                        <div class="p-promo-slot small mt-1">
+                            <span class="badge bg-danger-subtle text-danger fw-semibold me-1">Promotion</span>
+                            <span class="p-promo-value text-warning-emphasis">%@p.FinalPrice</span>
+                        </div>
 
                         <div class="p-quick">
                             <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-light">​@T["Views"]</a>
@@ -71,7 +92,7 @@
                     <div class="p-meta">
                         <div class="p-name" title="@p.Name">@p.Name</div>
                         <div class="p-sub">
-                            <span class="badge bg-dark-subtle text-light">@p.Category.CategoryName</span>
+                            <span class="badge bg-dark-subtle text-light">@p.CategoryName</span>
                             <form asp-controller="Cart" asp-action="Add" asp-route-id="@p.Id" method="post" class="ms-auto d-flex gap-2">
                                 @Html.AntiForgeryToken()
                                 <input type ="hidden" type="number" name="qty" value="1" min="1" class="form-control form-control-sm" style="width:80px" />

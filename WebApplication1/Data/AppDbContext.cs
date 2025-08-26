@@ -7,7 +7,7 @@ namespace WebApplication1.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        // DbSets
+        // DbSets (រក្សាឈ្មោះដដែល)
         public DbSet<Product> products { get; set; }
         public DbSet<Stock> stocks { get; set; }
         public DbSet<Order> orders { get; set; }
@@ -20,7 +20,6 @@ namespace WebApplication1.Data
         public DbSet<Promotion> promotions { get; set; }
         public DbSet<Category> categories { get; set; }
         public DbSet<Message> Messages => Set<Message>();
-        // 🔴 removed the duplicate: public DbSet<CartItem> carItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,8 +33,8 @@ namespace WebApplication1.Data
                 e.Property(x => x.Id).HasColumnName("id");
 
                 e.Property(x => x.Name).HasColumnName("name").HasMaxLength(250);
-                e.Property(x => x.Description).HasColumnName("description"); // MySQL TEXT
-                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
+                e.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
+                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
                 e.Property(x => x.QtyInStock).HasColumnName("QtyInstock");
                 e.Property(x => x.Image).HasColumnName("image").HasMaxLength(100);
                 e.Property(x => x.CodeOrBarcode).HasColumnName("code_or_barcode");
@@ -55,29 +54,26 @@ namespace WebApplication1.Data
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.CategoryName).HasColumnName("category_name").HasMaxLength(100);
-                e.Property(x => x.Description).HasColumnName("description"); // TEXT
+                e.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
-                e.Property(x => x.IsActive).HasColumnName("is_active");
+                e.Property(x => x.IsActive).HasColumnName("is_active").HasColumnType("bit");
             });
 
             // ===== users =====
-         modelBuilder.Entity<User>(e =>
-{
-    e.ToTable("users");
-    e.HasKey(x => x.Id);
-    e.Property(x => x.Id).HasColumnName("id");
-    e.Property(x => x.Name).HasColumnName("name");
-    e.Property(x => x.Email).HasColumnName("email");
-    e.Property(x => x.Password).HasColumnName("password");
-    e.Property(x => x.Phone).HasColumnName("phone");
-    e.Property(x => x.RegisteredDate).HasColumnName("registered_date");
-    e.Property(x => x.Address).HasColumnName("address");
-
-    // if the DB column is NOT literally "role", put the exact name here:
-  // <- change to the real name if different
-});
-
+            modelBuilder.Entity<User>(e =>
+            {
+                e.ToTable("users");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.Name).HasColumnName("name");
+                e.Property(x => x.Email).HasColumnName("email");
+                e.Property(x => x.Password).HasColumnName("password");
+                e.Property(x => x.Phone).HasColumnName("phone");
+                e.Property(x => x.RegisteredDate).HasColumnName("registered_date");
+                e.Property(x => x.Address).HasColumnName("address").HasColumnType("nvarchar(max)");
+                // e.Property(x => x.Role).HasColumnName("role"); // បើមាន column role នៅ DB
+            });
 
             // ===== shipping_addresses =====
             modelBuilder.Entity<ShippingAddress>(e =>
@@ -87,8 +83,7 @@ namespace WebApplication1.Data
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.UserId).HasColumnName("user_id");
                 e.Property(x => x.RecipientName).HasColumnName("recipient_name").HasMaxLength(200);
-                e.Property(x => x.Address).HasColumnName("address").HasColumnType("longtext");
-           
+                e.Property(x => x.Address).HasColumnName("address").HasColumnType("nvarchar(max)");
 
                 e.HasOne(d => d.User)
                  .WithMany(p => p.shipping_address)
@@ -103,7 +98,7 @@ namespace WebApplication1.Data
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.UserId).HasColumnName("user_id");
-                e.Property(x => x.TotalPrice).HasColumnName("total_price").HasColumnType("decimal(10,2)");
+                e.Property(x => x.TotalPrice).HasColumnName("total_price").HasColumnType("decimal(18,2)");
                 e.Property(x => x.OrderDate).HasColumnName("order_date");
                 e.Property(x => x.Status).HasColumnName("status").HasMaxLength(50);
 
@@ -127,7 +122,7 @@ namespace WebApplication1.Data
                 e.Property(x => x.OrderId).HasColumnName("order_id");
                 e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Qty).HasColumnName("qty");
-                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
+                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
 
                 e.HasOne(d => d.Product)
                  .WithMany(p => p.OrderDetails)
@@ -159,7 +154,8 @@ namespace WebApplication1.Data
                 e.Property(x => x.CartId).HasColumnName("cart_id");
                 e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Quantity).HasColumnName("quantity");
-                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)");
+                e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
+                e.Property(x=> x.dis).HasColumnName("dis").HasColumnType("decimal(18,2)");
 
                 e.HasOne(i => i.Product)
                  .WithMany(p => p.CartItems)
@@ -192,7 +188,7 @@ namespace WebApplication1.Data
                 e.Property(x => x.UserId).HasColumnName("user_id");
                 e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Rating).HasColumnName("rating");
-                e.Property(x => x.Comment).HasColumnName("comment"); // TEXT
+                e.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
                 e.Property(x => x.ReviewDate).HasColumnName("review_date");
 
                 e.HasOne(r => r.User)
@@ -211,16 +207,34 @@ namespace WebApplication1.Data
             {
                 e.ToTable("promotions");
                 e.HasKey(x => x.Id);
+
                 e.Property(x => x.Id).HasColumnName("id");
                 e.Property(x => x.ProductId).HasColumnName("product_id");
-                e.Property(x => x.DiscountPercent).HasColumnName("discount_percent");
+
+                // precise money/percent
+                e.Property(x => x.DiscountPercent)
+                    .HasColumnName("discount_percent")
+                    .HasPrecision(5, 2);   // 0.00–100.00
+
                 e.Property(x => x.StartDate).HasColumnName("start_date");
                 e.Property(x => x.EndDate).HasColumnName("end_date");
 
                 e.HasOne(p => p.Product)
-                 .WithMany(pr => pr.Promotions)
-                 .HasForeignKey(p => p.ProductId)
-                 .OnDelete(DeleteBehavior.Cascade);
+                    .WithMany(pr => pr.Promotions)
+                    .HasForeignKey(p => p.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // helpful indexes
+                e.HasIndex(x => x.ProductId);
+                e.HasIndex(x => new { x.ProductId, x.StartDate, x.EndDate });
+
+                // guardrails (SQL Server)
+                e.ToTable(t => t.HasCheckConstraint(
+                    "CK_promotions_discount_0_100",
+                    "[discount_percent] >= 0 AND [discount_percent] <= 100"));
+
+                // (optional) prevent overlapping ranges per product (SQL Server 2012+)
+                // t.HasCheckConstraint("CK_promotions_dates", "[start_date] <= [end_date]");
             });
 
             // ===== messages =====
@@ -232,10 +246,10 @@ namespace WebApplication1.Data
                 e.Property(x => x.SenderId).HasColumnName("sender_id");
                 e.Property(x => x.ReceiverId).HasColumnName("receiver_id");
                 e.Property(x => x.Subject).HasColumnName("subject");
-                e.Property(x => x.Body).HasColumnName("body");
+                e.Property(x => x.Body).HasColumnName("body").HasColumnType("nvarchar(max)");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
-                e.Property(x => x.IsRead).HasColumnName("is_read");
-                e.Property(x => x.IsArchived).HasColumnName("is_archived");
+                e.Property(x => x.IsRead).HasColumnName("is_read").HasColumnType("bit");
+                e.Property(x => x.IsArchived).HasColumnName("is_archived").HasColumnType("bit");
                 e.Property(x => x.ParentId).HasColumnName("parent_id");
             });
         }

@@ -270,4 +270,13 @@
   <data name="Pending" xml:space="preserve">
     <value>Pending</value>
   </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
 </root>

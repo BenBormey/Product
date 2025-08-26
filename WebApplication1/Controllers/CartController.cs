@@ -63,13 +63,26 @@ public class CartController : Controller
         if (qty <= 0) qty = 1;
         var userId = 1; // TODO
         var product = await _db.products.FirstOrDefaultAsync(p => p.Id == id);
+
+
+        var now = DateTime.UtcNow;
+
+        var prodis = await _db.promotions
+            .Where(pr => pr.ProductId == id
+                && (pr.StartDate == null || pr.StartDate <= now)
+                && (pr.EndDate == null || now <= pr.EndDate))
+            .OrderByDescending(pr => (double)pr.DiscountPercent)                 
+            .ThenBy(pr => pr.EndDate )        
+            .FirstOrDefaultAsync();
+
+
         if (product is null) { TempData["Error"] = "Product not found."; return RedirectToAction("Index", "Menu"); }
 
         var cart = await _cartService.GetOrCreateAsync(userId);
         var item = cart.CartItems.FirstOrDefault(x => x.ProductId == id);
         if (item is null)
         {
-            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty, Price = product.Price/*, Price = product.Price*/ };
+            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty, Price = product.Price,dis = Math.Round(product.Price * (1 - ((decimal)prodis.DiscountPercent / 100m)), 2) };
             _db.cartItems.Add(item);
         }
         else item.Quantity += qty;

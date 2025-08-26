@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Entities;
+using WebApplication1.Models.User;
 
 namespace WebApplication1.Controllers
 {
-   
+
     public class AccountController : Controller
     {
         private readonly AppDbContext _db;
@@ -21,6 +23,18 @@ namespace WebApplication1.Controllers
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
+        [AllowAnonymous]
+        public IActionResult AccessDenied(string? returnUrl)
+        {
+            Response.StatusCode = 403; // for logging/SEO
+            ViewBag.ReturnUrl = returnUrl;
+            return View();             // render nice page
+        }
+
+        // មាន Denied ចាស់? redirect មក AccessDenied
+        [AllowAnonymous]
+        public IActionResult Denied(string? returnUrl)
+            => RedirectToAction(nameof(AccessDenied), new { returnUrl });
 
         [HttpPost]
         [AllowAnonymous]
@@ -71,12 +85,48 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
-        }
+        }  
 
         public IActionResult Denied() => Content("Access denied");
+
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Manager")]
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterUser(Uservm model)
+        {
+            if (ModelState.IsValid)
+            {
+
+
+            }
+            _db.users.Add(new User
+            {
+                Name = model.Name,
+                Email = model.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                Role = model.role,
+                RegisteredDate = DateTime.UtcNow
+            });
+             _db.SaveChanges();
+            return RedirectToAction("Index", "Teams");
+        }
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Create()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
     }
 }

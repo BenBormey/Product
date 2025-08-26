@@ -6,7 +6,7 @@ using WebApplication1.Repository;
 
 namespace WebApplication1.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class DashboardController : Controller
     {
       
