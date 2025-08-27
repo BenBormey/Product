@@ -10,6 +10,7 @@ using WebApplication1.Data;
 using WebApplication1.Entities;
 using WebApplication1.Exspention;
 using WebApplication1.Localization;
+using WebApplication1.Models;
 using WebApplication1.Repository;
 using WebApplication1.service;
 using WebApplication1.Validator;
@@ -32,10 +33,17 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";               // when unauthenticated
     options.AccessDeniedPath = "/Account/AccessDenied"; // when authenticated but no permission
 });
+// Server-side auto validation
+builder.Services.AddFluentValidationAutoValidation();
 
+// (ជាជម្រើស) Client-side (jQuery) adapters
+builder.Services.AddFluentValidationClientsideAdapters();
+
+// Register validators (ជ្រើសមួយវិធី)
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
 
 builder.Services.AddAppLocalization(builder.Configuration);
-builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -98,6 +106,6 @@ var locOpts = app.Services.GetRequiredService<
 app.UseRequestLocalization(locOpts);
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

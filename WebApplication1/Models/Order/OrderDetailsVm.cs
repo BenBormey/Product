@@ -14,6 +14,7 @@ namespace WebApplication1.Models.Order
         public int ItemsCount => Items.Sum(x => x.Qty);
         public decimal Subtotal => Items.Sum(x => x.LineTotal);
          public decimal? cashreturn { get; set; }
+        
          public decimal? cashAmount { get; set; }
         //public decimal cashreturn { get; set; }
 

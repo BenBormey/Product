@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebApplication1.Data;
 using WebApplication1.Entities;
 using WebApplication1.service;
 
@@ -10,18 +11,36 @@ namespace WebApplication1.Controllers
     public class CheckoutController : Controller
     {
         private readonly CheckoutService _service;
-        public CheckoutController(CheckoutService service) => _service = service;
+   
+        public CheckoutController(CheckoutService service,AppDbContext context)
+        {
+            _service = service;
+            _db = context;
+        }
+        private readonly AppDbContext _db;
+
 
 
         int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
 
         [HttpGet]
+    
         public async Task<IActionResult> Index()
         {
-            var vm = await _service.BuildSummaryAsync(CurrentUserId, deliveryFee: 0m, discount: 0m);
-            return View(vm);
+            try
+            {
+                var vm = await _service.BuildSummaryAsync(CurrentUserId, deliveryFee: 0m, discount: 0m);
+                return View(vm);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "Cart empty.")
+            {
+                TempData["Warn"] = "Your cart is empty. Please add items before checkout.";
+                return RedirectToAction("Index", "Cart");
+            }
         }
+          
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -1,0 +1,189 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using WebApplication1.Models.Promotion
+@model IEnumerable<PromotionList>
+
+@{
+    ViewData["Title"] = "Promotion";
+    var now = DateTime.UtcNow;
+    string Status(PromotionList p)
+        => now < p.StartDate ? "Upcoming" : (now > p.EndDate ? "Expired" : "Active");
+
+    var products = (IEnumerable<SelectListItem>)(ViewBag.Products ?? Enumerable.Empty<SelectListItem>());
+    string? selectedProductId = ViewBag.ProductId?.ToString();
+    string? onDate = ViewBag.On as string; // yyyy-MM-dd
+}
+
+<style>
+    /* ===== UI polish for dark dashboard ===== */
+    .promo-card {
+        background: #12161d;
+        border: 1px solid #1f2633;
+        border-radius: 14px;
+    }
+
+    .promo-title {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-weight: 700;
+        background: linear-gradient(90deg,#9aa4ff, #8df);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .promo-icon {
+        color: #94a3b8;
+        opacity: .75
+    }
+
+    .filter-bar .form-select, .filter-bar .form-control {
+        background: #0f131a;
+        border-color: #1f2633;
+        color: #e5e7eb;
+    }
+
+    .filter-bar .btn {
+        border-radius: 10px;
+    }
+
+    .table-darklike {
+        color: #e5e7eb;
+    }
+
+        .table-darklike thead th {
+            position: sticky;
+            top: 0;
+            background: #0f131a;
+            border-bottom: 1px solid #1f2633;
+        }
+
+        .table-darklike tbody tr {
+            border-bottom: 1px solid #1f2633;
+        }
+
+            .table-darklike tbody tr:hover {
+                background: #0d1118;
+            }
+
+    .badge-active {
+        background: #16a34a !important;
+    }
+
+    .badge-upcoming {
+        background: #0891b2 !important;
+    }
+
+    .badge-expired {
+        background: #6b7280 !important;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #2b3344;
+        background: #0f131a;
+        color: #cbd5e1;
+        border-radius: 10px;
+    }
+
+        .btn-icon:hover {
+            background: #141a24;
+            color: #fff;
+        }
+
+    .action-col {
+        white-space: nowrap;
+    }
+
+    .empty {
+        color: #9aa3af;
+        text-align: center;
+        padding: 2.5rem 0;
+    }
+</style>
+
+<div class="promo-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="promo-title m-0">
+            <i class="bi bi-ticket-perforated-fill promo-icon"></i>
+            Promotion
+        </h4>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg me-1"></i> New
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="filter-bar row g-2 mb-3">
+        <div class="col-auto">
+            <select name="productId" class="form-select">
+                <option value="">All products</option>
+                @foreach (var opt in products)
+                {
+                    <option value="@opt.Value" selected="@(selectedProductId == opt.Value ? "selected" : null)">@opt.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="date" name="on" class="form-control" value="@onDate" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-light"><i class="bi bi-funnel me-1"></i>Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-1"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-darklike align-middle">
+            <thead>
+                <tr>
+                    <th style="width:38%">Product</th>
+                    <th class="text-end" style="width:12%">Discount %</th>
+                    <th style="width:18%">Start</th>
+                    <th style="width:18%">End</th>
+                    <th style="width:10%">Status</th>
+                    <th class="text-end action-col" style="width:14%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="empty">No promotions found.</td></tr>
+                }
+                else
+                {
+                    foreach (var p in Model)
+                    {
+                        var st = Status(p);
+                        var badge = st == "Active" ? "badge-active"
+                        : st == "Upcoming" ? "badge-upcoming" : "badge-expired";
+                        <tr>
+                            <td>@(p.ProductId == null ? "— (Rule / Order-level)" : p.ProductName)</td>
+                            <td class="text-end">@p.DiscountPercent.ToString("0.##")%</td>
+
+                            <!-- ✅ Correct datetime format -->
+                            <td>@p.StartDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@p.EndDate.ToString("yyyy-MM-dd HH:mm")</td>
+
+                            <td><span class="badge @badge">@st</span></td>
+                            <td class="text-end action-col">
+                                <a class="btn-icon me-1" asp-action="Edit" asp-route-id="@p.PromotionId" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                 <a  asp-action="Delete" method="post">
+                                    <input type="hidden" asp-route-id="@p.PromotionId" />
+                                    <button class="btn btn-danger">Delete</button>
+                             
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

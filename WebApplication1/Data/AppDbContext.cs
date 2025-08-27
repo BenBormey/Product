@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Net;
 using WebApplication1.Entities;
 
 namespace WebApplication1.Data
@@ -123,6 +124,7 @@ namespace WebApplication1.Data
                 e.Property(x => x.ProductId).HasColumnName("product_id");
                 e.Property(x => x.Qty).HasColumnName("qty");
                 e.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
+                e.Property(x => x.dis).HasColumnName("dis").HasColumnType("decimal(18,2)");
 
                 e.HasOne(d => d.Product)
                  .WithMany(p => p.OrderDetails)

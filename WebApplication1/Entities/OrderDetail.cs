@@ -13,6 +13,7 @@ namespace WebApplication1.Entities
 
         public Order Order { get; set; } = default!;
         public Product Product { get; set; } = default!;
+        public double dis { get; set; }
     }
 
 }

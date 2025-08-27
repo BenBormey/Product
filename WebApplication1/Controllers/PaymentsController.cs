@@ -87,7 +87,7 @@ namespace WebApplication1.Controllers
                 TempData["error"] = "Cash amount must be at least the total price.";
                 return RedirectToAction(nameof(Cash), new { orderId });
             }
-
+            order.Status = "Completed";
        
             // ... mark paid, etc.
            

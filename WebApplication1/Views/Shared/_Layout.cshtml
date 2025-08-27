@@ -180,6 +180,18 @@
                 <a asp-controller="Teams" asp-action="Index" class="nav-link @Active("Teams","Index")">
                     <i class="bi bi-people"></i> <span>@T["Teams"]</span>
                 </a>
+                <a asp-controller="Promotion" asp-action="Index" class="nav-link @Active("Promotion","Index")">
+                    <i class="bi bi-ticket-perforated-fill"></i> 
+                    <span>@T["Promotion"]</span>
+                </a>
+                <a asp-controller="Teams" asp-action="Index" class="nav-link @Active("Purchases","Index")">
+                    <i class="bi bi-wallet2"></i>
+                    <span>@T["Purchases"]</span>
+                </a>
+                <a asp-controller="Teams" asp-action="Index" class="nav-link @Active("Expenses","Index")">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <span>@T["Expenses"]</span>
+                </a>
                 <a asp-controller="Messages" asp-action="Index" class="nav-link @Active("Messages","Index")">
                     <i class="bi bi-chat-dots"></i> <span>@T["Message"]</span>
                 </a>

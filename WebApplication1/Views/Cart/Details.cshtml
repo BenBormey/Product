@@ -45,6 +45,8 @@
                                 <th style="width:72px;"></th>
                                 <th>Product</th>
                                 <th class="text-end">Unit</th>
+                                <th class="text-end">Discount</th>
+
                                 <th class="text-end">Qty</th>
                                 <th class="text-end">Total</th>
                             </tr>
@@ -59,6 +61,7 @@
                                     </td>
                                     <td>@i.Name</td>
                                     <td class="text-end">$ @i.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end">$ @i.dis.ToString("N2")</td>
                                     <td class="text-end">@i.Qty</td>
                                     <td class="text-end">$ @i.LineTotal.ToString("N2")</td>
                                     @* <td class="text-end">$ @i.ToString("N2")</td> *@

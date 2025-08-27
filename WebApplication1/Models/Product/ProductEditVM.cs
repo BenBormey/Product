@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace WebApplication1.Models
+namespace WebApplication1.Models.Product
 {
     public class ProductEditVM
     {
@@ -23,6 +23,7 @@ namespace WebApplication1.Models
 
         [Display(Name = "Category")]
         public int CategoryId { get; set; }
+        public int qty { get; set; }
 
         // for dropdown
         public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();

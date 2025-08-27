@@ -130,8 +130,9 @@
                 <tr>
                     <th style="width:18%">Code</th>
                     <th>Item</th>
-                    <th class="right" style="width:8%">Qty</th>
-                    <th class="right" style="width:14%">Price</th>
+                    <th class="right" style="width:5%">Qty</th>
+                    <th class="right" style="width:12%">Price</th>
+                    <th class="right" style="width:12%">Discount</th>
                     <th class="right" style="width:16%">Line Total</th>
                 </tr>
             </thead>
@@ -143,20 +144,24 @@
                         <td>@it.Name</td>
                         <td class="right">@it.Qty</td>
                         <td class="right">@Money(it.UnitPrice)</td>
+                        <td class="right">@Money(it.dis)</td>
                         <td class="right">@Money(it.LineTotal)</td>
                     </tr>
                 }
             </tbody>
         </table>
 
-        <table style="margin-top:6px;width:100%;border-collapse:collapse">
+        <table style="margin-top:6px;width:113%;border-collapse:collapse">
             <tr>
+              
                 <td class="right muted" style="width:78%">Subtotal</td>
+              
                 <td class="right" style="width:22%">@Money(Model.Subtotal)</td>
             </tr>
             <tr>
                 <td class="right"><strong>Grand Total</strong></td>
                 <td class="right"><strong>@Money(Model.GrandTotal)</strong></td>
+
             </tr>
             @if (Model.IsReceipt || Model.Paid > 0 || Model.Change > 0 || Model.Due > 0)
             {

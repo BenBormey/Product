@@ -10,6 +10,6 @@ namespace WebApplication1.Models
       decimal Total,
       ShippingAddress Address
   );
-    public record CartLine(int ProductId, string Name, string? Image, decimal Price, int Qty, decimal Subtotal);
+    public record CartLine(int ProductId, string Name, string? Image, decimal Price, int Qty, decimal Subtotal,decimal discount);
 
 }

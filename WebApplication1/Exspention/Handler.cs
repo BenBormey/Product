@@ -1,5 +1,9 @@
-﻿using WebApplication1.Repository;
+﻿using FluentValidation;
+using WebApplication1.Entities;
+using WebApplication1.Models.Product;
+using WebApplication1.Repository;
 using WebApplication1.service;
+using WebApplication1.Validator;
 
 namespace WebApplication1.Exspention
 {
@@ -12,6 +16,9 @@ namespace WebApplication1.Exspention
             service.AddScoped<IDashboardService, DashboardService>();
             service.AddSingleton<IQrService, QrService>();
             service.AddScoped<IPaymentService, DemoPaymentService>();
+            service.AddScoped<IpromotionRepository, PromotionService>();
+            service.AddScoped<IValidator<CreateProductVM>, CreateProductValidator>();
+            service.AddValidatorsFromAssemblyContaining<ProductEditVMValidator>();
 
             return service;
         }

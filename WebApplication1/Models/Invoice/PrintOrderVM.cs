@@ -16,6 +16,7 @@ namespace WebApplication1.Models.Invoice
 
         public bool IsReceipt { get; set; }
         public  string Phone { get; set; }     
+        public double Totaldis { get; set; }
 
     }
 }

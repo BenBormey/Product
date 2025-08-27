@@ -10,21 +10,30 @@ namespace WebApplication1.service
         private readonly AppDbContext _db;
         public CheckoutService(AppDbContext db) => _db = db;
 
+
+
         public async Task<CheckoutVM> BuildSummaryAsync(int userId, decimal deliveryFee = 0m, decimal discount = 0m, CancellationToken ct = default)
         {
-            var cart = await _db.Set<Cart>()
+
+
+            var cart = await _db.carts
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId, ct);
+           
 
             if (cart is null || cart.CartItems.Count == 0) throw new InvalidOperationException("Cart empty.");
 
             var lines = cart.CartItems.Select(ci => new CartLine(
-                ci.ProductId, ci.Product.Name, ci.Product.Image, ci.Product.Price, ci.Quantity, ci.Product.Price * ci.Quantity));
+                ci.ProductId, ci.Product.Name, ci.Product.Image, ci.Product.Price, ci.Quantity,ci.Product.Price * ci.Quantity, ci.dis * ci.Quantity));
 
             var subtotal = lines.Sum(x => x.Subtotal);
+             discount = lines.Sum(x => x.discount);
             var addr = await _db.Set<ShippingAddress>().FirstOrDefaultAsync(a => a.UserId == userId, ct);
-            
+     
+
+          
+
             return new CheckoutVM(lines, subtotal, deliveryFee, discount, subtotal + deliveryFee - discount, addr);
         }
 
@@ -93,7 +102,8 @@ namespace WebApplication1.service
                         OrderId = order.Id,
                         ProductId = i.ProductId,
                         Qty = i.Quantity,
-                        Price = i.Price
+                        Price = i.Price,
+                        dis = (double)i.dis
                         
 
                     });

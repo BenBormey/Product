@@ -1,8 +1,8 @@
-﻿@model WebApplication1.Entities.Product
+﻿@model WebApplication1.Models.Product.ProductEditVM
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Edit Product";
-    var cats = ViewBag.Categories as List<WebApplication1.Entities.Category>;
+ 
 }
 
 <div class="panel">
@@ -38,12 +38,20 @@
                                 </div>
                                 <span asp-validation-for="Price" class="text-danger small"></span>
                             </div>
+                            <div class="col-md-6">
+                                <label asp-for="Price" class="form-label fw-semibold">QTY</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="qty" class="form-control" />
+                                </div>
+                                <span asp-validation-for="qty" class="text-danger small"></span>
+                            </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Category</label>
                                 <select asp-for="CategoryId"
                                         class="form-select"
-                                        asp-items="@(new SelectList(cats, nameof(WebApplication1.Entities.Category.Id), nameof(WebApplication1.Entities.Category.CategoryName)))">
+                                        asp-items="Model.Categories">
                                 </select>
                                 <span asp-validation-for="CategoryId" class="text-danger small"></span>
                             </div>

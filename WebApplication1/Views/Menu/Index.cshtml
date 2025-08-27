@@ -1,4 +1,5 @@
-﻿@model ProductIndexVM
+﻿@using WebApplication1.Models.Product
+@model ProductIndexVM
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> T
 @{
@@ -43,10 +44,7 @@
 
     <!-- Category chips -->
     <ul class="nav nav-pills small mb-3 chips">
-        <li class="nav-item">
-            <a class="nav-link @(Model.CategoryId is null ? "active" : "")"
-               asp-action="Index" asp-route-q="@Model.Q">All</a>
-        </li>
+       
         @foreach (var opt in Model.CategoryOptions)
         {
             var active = (Model.CategoryId?.ToString() == opt.Value) ? "active" : "";

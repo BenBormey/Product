@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Entities;
 using WebApplication1.Models;
+using WebApplication1.Models.CartDTO;
 using WebApplication1.Models.Invoice;
 using WebApplication1.Models.Order; // ប្តូរប្រសិនបើ namespace ផ្សេង
 [Authorize]
@@ -24,7 +27,8 @@ public class CartController : Controller
     // GET: /Cart
     public async Task<IActionResult> Index()
     {
-        var userId = 1; // TODO: replace with real logged-in user id
+
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         var cart = await _db.carts
             .Include(c => c.CartItems)
@@ -47,7 +51,9 @@ public class CartController : Controller
                 ProductName = i.Product.Name,
                 Image = string.IsNullOrWhiteSpace(i.Product.Image) ? "/images/placeholder-food.jpg" : i.Product.Image,
                 Quantity = i.Quantity,
-                Price = i.Product.Price            // ✅ កុំអាន i.Price ទៀតទេ
+                Price = i.Product.Price ,
+                dis = i.dis 
+                // ✅ កុំអាន i.Price ទៀតទេ
             }).ToList()
         };
 
@@ -79,14 +85,20 @@ public class CartController : Controller
         if (product is null) { TempData["Error"] = "Product not found."; return RedirectToAction("Index", "Menu"); }
 
         var cart = await _cartService.GetOrCreateAsync(userId);
+ 
+
         var item = cart.CartItems.FirstOrDefault(x => x.ProductId == id);
         if (item is null)
         {
-            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty, Price = product.Price,dis = Math.Round(product.Price * (1 - ((decimal)prodis.DiscountPercent / 100m)), 2) };
+            item = new CartItem { CartId = cart.Id, ProductId = id, Quantity = qty, Price = product.Price,dis = Math.Round(product.Price * ((prodis?.DiscountPercent ?? 0m) / 100m), 2) };
             _db.cartItems.Add(item);
         }
-        else item.Quantity += qty;
-
+        else
+        {
+            item.Quantity += qty;
+            item.dis = Math.Round(product.Price * ((prodis?.DiscountPercent ?? 0m) / 100m), 2);
+        }
+      
         await _db.SaveChangesAsync();
         TempData["Success"] = "Added to cart.";
         return RedirectToAction(nameof(Index));
@@ -173,6 +185,7 @@ public class CartController : Controller
                 Name = od.Product != null ? od.Product.Name : $"#{od.ProductId}",
                 ImageUrl = od.Product != null ? od.Product.Image : null,
                 UnitPrice = od.Price,
+                dis = (decimal)od.dis,
                 Qty = od.Qty,
                 LineTotal = od.Price * od.Qty
             })
@@ -186,6 +199,7 @@ public class CartController : Controller
             Id = order.Id,
             OrderDate = order.OrderDate,
             Status = order.Status,
+            
             TotalPrice = order.TotalPrice,
             Items = items,
             cashreturn = (decimal)order.cashreturn,
@@ -210,14 +224,18 @@ public class CartController : Controller
                   {
                       Code = p.CodeOrBarcode, // from products
                       Name = p.Name,
-                      Qty = d.Qty,      // <-- CHANGE HERE if your column is "Qty"
+                      Qty = d.Qty,
+                      dis = (decimal)d.dis,
+                      // <-- CHANGE HERE if your column is "Qty"
                       UnitPrice = d.Price == 0 ? p.Price : d.Price,  // fallback to product price
-                      LineTotal = d.Qty * (d.Price == 0 ? p.Price : d.Price)
+                      LineTotal = d.Qty *((d.Price == 0 ? p.Price : d.Price)-(decimal)d.dis)
                   })
             .ToListAsync(ct);
 
         var subtotal = items.Sum(x => x.LineTotal);
         var grandTotal = subtotal;              // no VAT/fees/discounts in minimal schema
+        var dis  = items.Sum(s => s.dis);
+
 
         var paid =order.cashAmount ?? 0m;                        // set if you store a paid amount
         var chg = order.cashreturn ?? 0m;             // you can pass ?change= from COD
@@ -240,6 +258,7 @@ public class CartController : Controller
             Due = due,
             IsReceipt = receipt,
             Phone = phone,
+            Totaldis = (double)dis
         };
    
 

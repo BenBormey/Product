@@ -279,4 +279,13 @@
   <data name="Password" xml:space="preserve">
     <value>ពាក្យសម្ងាត់</value>
   </data>
+  <data name="Promotion" xml:space="preserve">
+    <value>ការផ្សព្វផ្សាយ</value>
+  </data>
+  <data name="Purchases" xml:space="preserve">
+    <value>ការទិញ</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>ការចំណាយ</value>
+  </data>
 </root>

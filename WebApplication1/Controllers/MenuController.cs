@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Entities;
-using WebApplication1.Models;
+using WebApplication1.Models.Product;
 
 
 namespace WebApplication1.Controllers
@@ -111,7 +111,10 @@ namespace WebApplication1.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model.CategoryOptions = await GetCategoryOptionsAsync();
+                model.CategoryOptions = await _db.categories
+           .OrderBy(c => c.CategoryName)
+           .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CategoryName! })
+           .ToListAsync();
                 return View(model);
             }
 
@@ -165,16 +168,32 @@ namespace WebApplication1.Controllers
         // GET: /Products/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var p = await _db.products.FindAsync(id);
+            var p = await _db.products.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (p is null) return NotFound();
-            ViewBag.Categories = await _db.categories.OrderBy(c => c.CategoryName).ToListAsync();
-            return View(p);
+
+            var vm = new ProductEditVM
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Description = p.Description,
+                Image = p.Image,
+                CategoryId = p.CategoryId,
+                qty =(int) p.QtyInStock
+            };
+
+            vm.Categories = await _db.categories
+                .OrderBy(c => c.CategoryName)
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CategoryName! })
+                .ToListAsync();
+
+            return View(vm);
         }
 
         // POST: /Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product model, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(int id, ProductEditVM model, IFormFile? ImageFile)
         {
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid)
@@ -204,7 +223,7 @@ namespace WebApplication1.Controllers
             p.Description = model.Description;
             p.Image = model.Image;          // keep old if no upload
             p.CategoryId = model.CategoryId;
-            p.QtyInStock = model.QtyInStock;
+            p.QtyInStock = model.qty;
 
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

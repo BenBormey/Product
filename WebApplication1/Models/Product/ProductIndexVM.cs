@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace WebApplication1.Models
+namespace WebApplication1.Models.Product
 {
     public class ProductIndexVM
     {
