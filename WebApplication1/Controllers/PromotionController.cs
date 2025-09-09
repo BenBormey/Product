@@ -71,8 +71,7 @@ namespace WebApplication1.Controllers
                 .ToListAsync();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> Delete(int PromotionId)
         {
              await _context.DeletePromotion(PromotionId);
